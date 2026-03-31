@@ -9,9 +9,12 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.codex-write-check
+
 
 .DS_Store
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
