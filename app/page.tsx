@@ -197,6 +197,7 @@ export default function Home() {
           mood: selectedMood,
           intensity,
           memory: getMemory(),
+          variationSeed: Math.floor(Math.random() * 1000000),
         }),
       });
 

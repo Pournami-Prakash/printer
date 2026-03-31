@@ -40,7 +40,11 @@ const ROAST_MARKERS = [
   "public service announcement",
   "side quest",
   "deeply unserious",
-  "audacity"
+  "audacity",
+  "ambitious",
+  "failing",
+  "can't",
+  "cannot"
 ] as const;
 
 function isMood(v: string): v is Mood {
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { text, details, memory, mood, intensity } = await req.json();
+    const { text, details, memory, mood, intensity, variationSeed } = await req.json();
 
     if (!text || text.length < 5) {
       return NextResponse.json(
@@ -75,13 +79,18 @@ export async function POST(req: NextRequest) {
     const safeMood: Mood = isMood(mood) ? mood : "guilt";
     const safeIntensity: Intensity = isIntensity(intensity) ? intensity : "brutal";
 
-    const prompt = buildPrompt(text, safeMood, safeIntensity, memory, typeof details === "string" ? details : "");
-
     const finalDetails = typeof details === "string" ? details : "";
+    const finalVariationSeed =
+      typeof variationSeed === "number" && Number.isFinite(variationSeed)
+        ? variationSeed
+        : Math.floor(Math.random() * 1000000);
+
+    const prompt = buildPrompt(text, safeMood, safeIntensity, memory, finalDetails, finalVariationSeed);
+
     const result = await getBestReceiptReply(prompt, text, finalDetails);
 
     return NextResponse.json(
-      result ?? buildFallbackReceipt(text, finalDetails, safeMood, safeIntensity)
+      result ?? buildFallbackReceipt(text, finalDetails, safeMood, safeIntensity, finalVariationSeed)
     );
 
   } catch (error) {
@@ -105,7 +114,14 @@ async function getBestReceiptReply(prompt: string, text: string, details: string
       if (grounded && roasty) {
         return result;
       }
-    } catch {
+      console.warn(`[generate] ${provider} returned a weak result`, {
+        provider,
+        grounded,
+        roasty,
+        preview: result.main.slice(0, 180),
+      });
+    } catch (error) {
+      console.error(`[generate] ${provider} failed`, error);
       continue;
     }
   }
@@ -153,6 +169,20 @@ function isRoastyResult(
   const markerHit = ROAST_MARKERS.some((marker) => main.includes(marker));
   const hasQuestion = main.includes("?");
   const hasSecondClause = /[,;:-]/.test(main);
+  const hasComparison =
+    main.includes("like ") ||
+    main.includes(" as if ") ||
+    main.includes("treats ") ||
+    main.includes("treat ") ||
+    main.includes("sounds like");
+  const hasBite =
+    main.includes("can't ") ||
+    main.includes("cannot ") ||
+    main.includes("failing") ||
+    main.includes("good luck with that") ||
+    main.includes("how ambitious") ||
+    main.includes("that explains a lot") ||
+    main.includes("which tracks");
   const weakOpen =
     /^(you(?:'re| are)\s+(?:a|an)\b)/.test(main) ||
     /^(so\s+you(?:'re| are)\b)/.test(main) ||
@@ -166,16 +196,29 @@ function isRoastyResult(
 
   if (main.length < 45) return false;
   if (soundsLikeSummary) return false;
-  if (weakOpen && !markerHit) return false;
+  if (weakOpen && !markerHit && !hasComparison && !hasBite) return false;
 
-  return markerHit || (hasQuestion && hasSecondClause) || (overlapCount >= 2 && hasSecondClause && main.length >= 70);
+  return (
+    markerHit ||
+    hasBite ||
+    hasComparison ||
+    (hasQuestion && hasSecondClause) ||
+    (overlapCount >= 2 && hasSecondClause && main.length >= 60) ||
+    (overlapCount >= 2 && main.length >= 70)
+  );
 }
 
 function tidy(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function buildFallbackReceipt(text: string, details: string, mood: Mood, intensity: Intensity) {
+function buildFallbackReceipt(
+  text: string,
+  details: string,
+  mood: Mood,
+  intensity: Intensity,
+  variationSeed: number
+) {
   const task = tidy(text) || "this task";
   const context = tidy(details);
   const taskLine = task.length > 64 ? `${task.slice(0, 64).trim()}...` : task;
@@ -184,95 +227,201 @@ function buildFallbackReceipt(text: string, details: string, mood: Mood, intensi
       ? `${context.slice(0, 70).trim()}...`
       : context
     : "";
-  const templates: Record<Mood, Record<Intensity, { main: string; best: string; worst: string }>> = {
+  const templates: Record<Mood, Record<Intensity, Array<{ main: string; best: string; worst: string }>>> = {
     drama: {
-      soft: {
-        main: `"${taskLine}" is still waiting, which is bold for someone whose job is "${contextLine || "apparently avoiding the assignment"}". You really do carry yourself like both the headline and the plot hole.`,
-        best: `You do "${taskLine}" and the plot moves.`,
-        worst: `"${taskLine}" returns tomorrow for part two.`
-      },
-      brutal: {
-        main: `As a "${contextLine || "full-time excuse curator"}", you are doing amazing work avoiding "${taskLine}". You make one unfinished task feel like a public relations crisis.`,
-        best: `You finish "${taskLine}" and look normal again.`,
-        worst: `Everyone watches "${taskLine}" drag into tomorrow.`
-      },
-      unhinged: {
-        main: `Live footage confirms "${taskLine}" is still pending while "${contextLine || "your mysterious profession"}" somehow kept you busy. You are the first person I have seen turn a tiny obligation into prestige television.`,
-        best: `You kill "${taskLine}" and steal the scene.`,
-        worst: `"${taskLine}" gets renewed for another season.`
-      }
+      soft: [
+        {
+          main: `"${taskLine}" is still waiting, which is bold for someone whose job is "${contextLine || "apparently avoiding the assignment"}". You really do carry yourself like both the headline and the plot hole.`,
+          best: `You do "${taskLine}" and the plot moves.`,
+          worst: `"${taskLine}" returns tomorrow for part two.`
+        },
+        {
+          main: `I love that as "${contextLine || "someone with mysterious employment"}" you have turned "${taskLine}" into a slow-burning scandal. Even the curtains know too much.`,
+          best: `You handle "${taskLine}" and the gossip dies.`,
+          worst: `"${taskLine}" becomes episode two.`
+        }
+      ],
+      brutal: [
+        {
+          main: `As a "${contextLine || "full-time excuse curator"}", you are doing amazing work avoiding "${taskLine}". You make one unfinished task feel like a public relations crisis.`,
+          best: `You finish "${taskLine}" and look normal again.`,
+          worst: `Everyone watches "${taskLine}" drag into tomorrow.`
+        },
+        {
+          main: `Please, the way "${taskLine}" is still open under the care of a "${contextLine || "professional deflector"}" needs press coverage. You make delay feel red carpet.`,
+          best: `You do "${taskLine}" and the scandal cools.`,
+          worst: `The mess around "${taskLine}" gets louder.`
+        }
+      ],
+      unhinged: [
+        {
+          main: `Live footage confirms "${taskLine}" is still pending while "${contextLine || "your mysterious profession"}" somehow kept you busy. You are the first person I have seen turn a tiny obligation into prestige television.`,
+          best: `You kill "${taskLine}" and steal the scene.`,
+          worst: `"${taskLine}" gets renewed for another season.`
+        },
+        {
+          main: `Breaking news: a "${contextLine || "glorified plot device"}" has once again left "${taskLine}" simmering for ratings. Your avoidance has opening credits.`,
+          best: `You wrap "${taskLine}" and roll credits.`,
+          worst: `"${taskLine}" enters syndication.`
+        }
+      ]
     },
     guilt: {
-      soft: {
-        main: `So your title is "${contextLine || "busy for mysterious reasons"}" and yet "${taskLine}" is still sitting there. You make delay sound like a qualified profession.`,
-        best: `You do "${taskLine}" and sleep lighter.`,
-        worst: `Tomorrow inherits "${taskLine}" too.`
-      },
-      brutal: {
-        main: `You are a "${contextLine || "professional deflector"}" and it shows, because "${taskLine}" still is not done. I can see you are deeply loyal to your current level of effort.`,
-        best: `You finish "${taskLine}" and stop embarrassing yourself.`,
-        worst: `You carry "${taskLine}" into tomorrow too.`
-      },
-      unhinged: {
-        main: `Please explain how someone with the title "${contextLine || "senior procrastination officer"}" still has "${taskLine}" on layaway. You remind me self-awareness is a subscription service you stopped paying for.`,
-        best: `You finally do "${taskLine}" like an adult.`,
-        worst: `"${taskLine}" becomes your whole personality.`
-      }
+      soft: [
+        {
+          main: `So your title is "${contextLine || "busy for mysterious reasons"}" and yet "${taskLine}" is still sitting there. You make delay sound like a qualified profession.`,
+          best: `You do "${taskLine}" and sleep lighter.`,
+          worst: `Tomorrow inherits "${taskLine}" too.`
+        },
+        {
+          main: `Interesting that a "${contextLine || "working citizen"}" has somehow made "${taskLine}" optional. You really do treat responsibilities like community theatre.`,
+          best: `You do "${taskLine}" and clear your conscience.`,
+          worst: `"${taskLine}" follows you into tomorrow.`
+        }
+      ],
+      brutal: [
+        {
+          main: `You are a "${contextLine || "professional deflector"}" and it shows, because "${taskLine}" still is not done. I can see you are deeply loyal to your current level of effort.`,
+          best: `You finish "${taskLine}" and stop embarrassing yourself.`,
+          worst: `You carry "${taskLine}" into tomorrow too.`
+        },
+        {
+          main: `How is a "${contextLine || "paid excuse manufacturer"}" still dodging "${taskLine}" like this? You make ordinary avoidance sound like a leadership role.`,
+          best: `You finish "${taskLine}" and act employed.`,
+          worst: `"${taskLine}" keeps billing you emotionally.`
+        }
+      ],
+      unhinged: [
+        {
+          main: `Please explain how someone with the title "${contextLine || "senior procrastination officer"}" still has "${taskLine}" on layaway. You remind me self-awareness is a subscription service you stopped paying for.`,
+          best: `You finally do "${taskLine}" like an adult.`,
+          worst: `"${taskLine}" becomes your whole personality.`
+        },
+        {
+          main: `A "${contextLine || "chief avoidance strategist"}" still has "${taskLine}" pending? You have the confidence of a person who thinks consequences are a beta feature.`,
+          best: `You do "${taskLine}" and rejoin society.`,
+          worst: `You and "${taskLine}" become codependent.`
+        }
+      ]
     },
     hug: {
-      soft: {
-        main: `Okay baby, as a "${contextLine || "busy little citizen"}", you are allowed one tiny crisis, not twelve. "${taskLine}" is just standing there waiting for you to stop performing avoidance.`,
-        best: `You start "${taskLine}" and feel better.`,
-        worst: `"${taskLine}" keeps hovering over your day.`
-      },
-      brutal: {
-        main: `Honey, for a "${contextLine || "fully employed overthinker"}", you are giving "${taskLine}" a lot of unpaid power. You make simple things sound like a hostage negotiation.`,
-        best: `You move on "${taskLine}" and the anxiety shrinks.`,
-        worst: `"${taskLine}" keeps draining your energy.`
-      },
-      unhinged: {
-        main: `Beloved, as a "${contextLine || "professional feelings manager"}", you cannot keep ghosting "${taskLine}". You cannot heal, journal, or vibe your way out of opening the file.`,
-        best: `You do "${taskLine}" and breathe easier.`,
-        worst: `You babysit "${taskLine}" all week.`
-      }
+      soft: [
+        {
+          main: `Okay baby, as a "${contextLine || "busy little citizen"}", you are allowed one tiny crisis, not twelve. "${taskLine}" is just standing there waiting for you to stop performing avoidance.`,
+          best: `You start "${taskLine}" and feel better.`,
+          worst: `"${taskLine}" keeps hovering over your day.`
+        },
+        {
+          main: `Sweetheart, for a "${contextLine || "functioning adult on paper"}", you are giving "${taskLine}" so much drama for free. This is a task, not a haunted relic.`,
+          best: `You start "${taskLine}" and unclench.`,
+          worst: `"${taskLine}" keeps looming overhead.`
+        }
+      ],
+      brutal: [
+        {
+          main: `Honey, for a "${contextLine || "fully employed overthinker"}", you are giving "${taskLine}" a lot of unpaid power. You make simple things sound like a hostage negotiation.`,
+          best: `You move on "${taskLine}" and the anxiety shrinks.`,
+          worst: `"${taskLine}" keeps draining your energy.`
+        },
+        {
+          main: `Love you badly, but the way a "${contextLine || "professional spiraler"}" has inflated "${taskLine}" into an emotional hostage situation is almost art.`,
+          best: `You do "${taskLine}" and get your peace back.`,
+          worst: `You keep romantically suffering over "${taskLine}".`
+        }
+      ],
+      unhinged: [
+        {
+          main: `Beloved, as a "${contextLine || "professional feelings manager"}", you cannot keep ghosting "${taskLine}". You cannot heal, journal, or vibe your way out of opening the file.`,
+          best: `You do "${taskLine}" and breathe easier.`,
+          worst: `You babysit "${taskLine}" all week.`
+        },
+        {
+          main: `My darling "${contextLine || "certified overfeeler"}", "${taskLine}" is not going to disappear because you made eye contact with your planner and then had a feeling about it.`,
+          best: `You do "${taskLine}" and the curse lifts.`,
+          worst: `You parent "${taskLine}" for another week.`
+        }
+      ]
     },
     doom: {
-      soft: {
-        main: `The balcony oracle notes that a "${contextLine || "person of mystery"}" still has not touched "${taskLine}". That is how tiny tasks become folklore.`,
-        best: `You do "${taskLine}" and dodge the spiral.`,
-        worst: `"${taskLine}" cashes out tomorrow.`
-      },
-      brutal: {
-        main: `Prophecy says a "${contextLine || "certified avoider"}" has once again let "${taskLine}" ferment. This is how minor nonsense grows teeth and a LinkedIn profile.`,
-        best: `You break the curse and finish "${taskLine}".`,
-        worst: `You personally craft fallout around "${taskLine}".`
-      },
-      unhinged: {
-        main: `Prophecy update: even with the title "${contextLine || "mysterious wanderer"}", you are still somehow being haunted by "${taskLine}". The timeline where this resolves itself is fake, sponsored, and deeply unserious.`,
-        best: `You interrupt the disaster arc and do "${taskLine}".`,
-        worst: `The prophecy around "${taskLine}" gets personal.`
-      }
+      soft: [
+        {
+          main: `The balcony oracle notes that a "${contextLine || "person of mystery"}" still has not touched "${taskLine}". That is how tiny tasks become folklore.`,
+          best: `You do "${taskLine}" and dodge the spiral.`,
+          worst: `"${taskLine}" cashes out tomorrow.`
+        },
+        {
+          main: `A vision came to me: a "${contextLine || "wandering avoider"}" still circling "${taskLine}" like it might resolve itself. That is how mild inconvenience becomes mythology.`,
+          best: `You do "${taskLine}" and the omen quiets.`,
+          worst: `"${taskLine}" matures into a problem.`
+        }
+      ],
+      brutal: [
+        {
+          main: `Prophecy says a "${contextLine || "certified avoider"}" has once again let "${taskLine}" ferment. This is how minor nonsense grows teeth and a LinkedIn profile.`,
+          best: `You break the curse and finish "${taskLine}".`,
+          worst: `You personally craft fallout around "${taskLine}".`
+        },
+        {
+          main: `The omens are clear: a "${contextLine || "career-grade dodger"}" has once again left "${taskLine}" out to evolve. Congratulations on inventing avoidable doom.`,
+          best: `You finish "${taskLine}" and escape the timeline.`,
+          worst: `"${taskLine}" develops consequences.`
+        }
+      ],
+      unhinged: [
+        {
+          main: `Prophecy update: even with the title "${contextLine || "mysterious wanderer"}", you are still somehow being haunted by "${taskLine}". The timeline where this resolves itself is fake, sponsored, and deeply unserious.`,
+          best: `You interrupt the disaster arc and do "${taskLine}".`,
+          worst: `The prophecy around "${taskLine}" gets personal.`
+        },
+        {
+          main: `The cursed paperwork states that a "${contextLine || "high priest of delay"}" has left "${taskLine}" simmering long enough to become lore. You are being haunted by your own calendar.`,
+          best: `You do "${taskLine}" and break the omen.`,
+          worst: `"${taskLine}" starts writing your biography.`
+        }
+      ]
     },
     goblin: {
-      soft: {
-        main: `Be serious. You are a "${contextLine || "part-time menace"}" and "${taskLine}" is still in witness protection. That is not a workflow. That is chaos with office hours.`,
-        best: `You do "${taskLine}" and the goblin calms down.`,
-        worst: `The chaos follows "${taskLine}" into tomorrow.`
-      },
-      brutal: {
-        main: `Absolutely not. A "${contextLine || "freelance nonsense dealer"}" still has not finished "${taskLine}". You make simple tasks sound like a luxury import.`,
-        best: `You do "${taskLine}" and reclaim your brain.`,
-        worst: `You keep marinating while "${taskLine}" waits.`
-      },
-      unhinged: {
-        main: `I have reviewed the crime scene and learned your title is "${contextLine || "chief nonsense architect"}" which frankly tracks, because "${taskLine}" is still untouched. This is clown behavior with calendar access.`,
-        best: `You fix "${taskLine}" and earn one crumb of peace.`,
-        worst: `Your chaos around "${taskLine}" gets receipts.`
-      }
+      soft: [
+        {
+          main: `Be serious. You are a "${contextLine || "part-time menace"}" and "${taskLine}" is still in witness protection. That is not a workflow. That is chaos with office hours.`,
+          best: `You do "${taskLine}" and the goblin calms down.`,
+          worst: `The chaos follows "${taskLine}" into tomorrow.`
+        },
+        {
+          main: `Tiny question: why does a "${contextLine || "mild household goblin"}" still have "${taskLine}" hidden under vibes? This is not strategy. This is decorative confusion.`,
+          best: `You do "${taskLine}" and peace returns.`,
+          worst: `"${taskLine}" joins the mess pile.`
+        }
+      ],
+      brutal: [
+        {
+          main: `Absolutely not. A "${contextLine || "freelance nonsense dealer"}" still has not finished "${taskLine}". You make simple tasks sound like a luxury import.`,
+          best: `You do "${taskLine}" and reclaim your brain.`,
+          worst: `You keep marinating while "${taskLine}" waits.`
+        },
+        {
+          main: `A "${contextLine || "licensed chaos goblin"}" still avoiding "${taskLine}" is exactly why the village no longer trusts vibes. You make basic tasks sound rare and expensive.`,
+          best: `You handle "${taskLine}" and save face.`,
+          worst: `"${taskLine}" keeps rotting on the counter.`
+        }
+      ],
+      unhinged: [
+        {
+          main: `I have reviewed the crime scene and learned your title is "${contextLine || "chief nonsense architect"}" which frankly tracks, because "${taskLine}" is still untouched. This is clown behavior with calendar access.`,
+          best: `You fix "${taskLine}" and earn one crumb of peace.`,
+          worst: `Your chaos around "${taskLine}" gets receipts.`
+        },
+        {
+          main: `Inspection complete: a "${contextLine || "full-time goblin executive"}" has once again left "${taskLine}" untouched like it might scare itself away. Your nonsense has infrastructure.`,
+          best: `You do "${taskLine}" and regain one molecule of dignity.`,
+          worst: `"${taskLine}" becomes a biohazard.`
+        }
+      ]
     }
   };
 
-  const picked = templates[mood][intensity];
+  const options = templates[mood][intensity];
+  const picked = options[Math.abs(variationSeed) % options.length];
 
   return {
     main: picked.main.slice(0, 220),

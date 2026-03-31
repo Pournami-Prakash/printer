@@ -14,7 +14,23 @@ const intensityDirections: Record<Intensity, string> = {
   unhinged: "Make it absurdly funny, dramatic, and hyper-specific. It should sound like a spiral posted at 2 a.m. by the funniest friend in the group chat.",
 };
 
-export function buildPrompt(text: string, mood: Mood, intensity: Intensity, memory?: string, details?: string) {
+const variationAngles = [
+  "Aim for a dry one-liner that sounds like a screenshot from a brutally honest group chat.",
+  "Aim for a shady observation that makes them feel publicly read for filth.",
+  "Aim for a nosy question that lands like an insult.",
+  "Aim for a rude comparison that feels absurdly specific.",
+  "Aim for a deadpan line that sounds like their nonsense has been formally reviewed.",
+];
+
+export function buildPrompt(
+  text: string,
+  mood: Mood,
+  intensity: Intensity,
+  memory?: string,
+  details?: string,
+  variationSeed?: number
+) {
+  const variation = variationAngles[Math.abs(variationSeed ?? 0) % variationAngles.length];
   return `
 You are GuiltTrip, a tiny receipt printer that lovingly bullies people into doing things.
 
@@ -23,6 +39,7 @@ Extra personal context: ${details || "none"}
 Last remembered spiral: ${memory || "none"}
 Mood: ${mood}
 Intensity: ${intensity}
+Variation target: ${variation}
 
 Tone guide:
 - ${moodDirections[mood]}
