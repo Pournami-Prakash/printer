@@ -1,6 +1,9 @@
-// LLM7.io — completely free, no API key, no account, no login required.
-// OpenAI-compatible endpoint. Just works.
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const LLM7_URL = "https://api.llm7.io/v1/chat/completions";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
+const LLM7_MODEL = "gpt-4o-mini";
+
+export type ModelProvider = "groq" | "llm7";
 
 export type ReceiptResponse = {
   main: string;
@@ -10,19 +13,40 @@ export type ReceiptResponse = {
 
 export async function generateReply(input: {
   prompt: string;
+  provider?: ModelProvider;
 }): Promise<ReceiptResponse> {
-  const res = await fetch(LLM7_URL, {
+  const provider = input.provider ?? (process.env.GROQ_API_KEY ? "groq" : "llm7");
+  return requestProvider(provider, input.prompt);
+}
+
+async function requestProvider(provider: ModelProvider, prompt: string): Promise<ReceiptResponse> {
+  const groqKey = process.env.GROQ_API_KEY;
+  if (provider === "groq" && !groqKey) {
+    throw new Error("GROQ_API_KEY is missing");
+  }
+
+  const endpoint = provider === "groq" ? GROQ_URL : LLM7_URL;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (provider === "groq") {
+    headers.Authorization = `Bearer ${groqKey}`;
+  }
+
+  const res = await fetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: provider === "groq" ? GROQ_MODEL : LLM7_MODEL,
       temperature: 0.72,
-      messages: [{ role: "user", content: input.prompt }]
+      messages: [{ role: "user", content: prompt }]
     })
   });
 
   if (!res.ok) {
-    throw new Error(`LLM7 request failed: ${res.status}`);
+    const body = await res.text();
+    throw new Error(`LLM request failed: ${res.status} ${body}`);
   }
 
   const json = await res.json();
@@ -68,8 +92,8 @@ function clipMain(value: string) {
     .split(/(?<=[.!?])\s+/)
     .map((part) => part.trim())
     .filter(Boolean)
-    .slice(0, 2);
-  return sentences.join(" ").slice(0, 220).trim();
+    .slice(0, 1);
+  return sentences.join(" ").slice(0, 180).trim();
 }
 
 function clipOutcome(value: string) {

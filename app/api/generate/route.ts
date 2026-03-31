@@ -77,14 +77,11 @@ export async function POST(req: NextRequest) {
 
     const prompt = buildPrompt(text, safeMood, safeIntensity, memory, typeof details === "string" ? details : "");
 
-    const result = await generateReply({ prompt });
-    const grounded = isGroundedResult(result, text, typeof details === "string" ? details : "");
-    const roasty = isRoastyResult(result, text, typeof details === "string" ? details : "");
+    const finalDetails = typeof details === "string" ? details : "";
+    const result = await getBestReceiptReply(prompt, text, finalDetails);
 
     return NextResponse.json(
-      grounded && roasty
-        ? result
-        : buildFallbackReceipt(text, typeof details === "string" ? details : "", safeMood, safeIntensity)
+      result ?? buildFallbackReceipt(text, finalDetails, safeMood, safeIntensity)
     );
 
   } catch (error) {
@@ -95,6 +92,25 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+async function getBestReceiptReply(prompt: string, text: string, details: string) {
+  const attempts: Array<"groq" | "llm7"> = process.env.GROQ_API_KEY ? ["groq", "llm7"] : ["llm7"];
+
+  for (const provider of attempts) {
+    try {
+      const result = await generateReply({ prompt, provider });
+      const grounded = isGroundedResult(result, text, details);
+      const roasty = isRoastyResult(result, text, details);
+      if (grounded && roasty) {
+        return result;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
 }
 
 function tokenize(value: string) {
