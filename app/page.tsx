@@ -244,31 +244,33 @@ export default function Home() {
     ) as HTMLElement | null;
     if (!liveFace) return;
 
-    const exportNode = document.createElement('div');
-    exportNode.style.position = 'fixed';
-    exportNode.style.left = '-9999px';
-    exportNode.style.top = '0';
-    exportNode.style.width = `${node.getBoundingClientRect().width}px`;
-    exportNode.style.background = '#fffdfa';
-    exportNode.style.borderRadius = '0 0 12px 12px';
-    exportNode.style.boxShadow = '0 14px 28px rgba(0,0,0,0.14)';
-    exportNode.style.overflow = 'hidden';
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
-    const faceClone = liveFace.cloneNode(true) as HTMLElement;
-    faceClone.style.position = 'relative';
-    faceClone.style.inset = 'auto';
-    faceClone.style.transform = 'none';
-    faceClone.style.backfaceVisibility = 'visible';
-    faceClone.style.webkitBackfaceVisibility = 'visible';
-    faceClone.style.minHeight = 'unset';
+    const faceRect = liveFace.getBoundingClientRect();
+    const exportHeight = Math.max(liveFace.scrollHeight, faceRect.height);
+    const previousStyle = liveFace.getAttribute('style') || '';
 
-    exportNode.appendChild(faceClone);
-    document.body.appendChild(exportNode);
+    liveFace.style.transform = 'none';
+    liveFace.style.backfaceVisibility = 'visible';
+    liveFace.style.webkitBackfaceVisibility = 'visible';
+    liveFace.style.position = 'relative';
+    liveFace.style.inset = 'auto';
+    liveFace.style.width = `${faceRect.width}px`;
+    liveFace.style.height = `${exportHeight}px`;
+    liveFace.style.minHeight = `${exportHeight}px`;
+    liveFace.style.overflow = 'visible';
+    liveFace.style.opacity = '1';
+    liveFace.style.visibility = 'visible';
+    liveFace.style.background = '#fffdfa';
 
     try {
-      const blob = await toBlob(exportNode, {
+      const blob = await toBlob(liveFace, {
         pixelRatio: 3,
         backgroundColor: '#fffdfa',
+        cacheBust: true,
+        width: Math.ceil(faceRect.width),
+        height: Math.ceil(exportHeight),
       });
 
       if (blob) {
@@ -283,9 +285,12 @@ export default function Home() {
         return;
       }
 
-      const dataUrl = await toPng(exportNode, {
+      const dataUrl = await toPng(liveFace, {
         pixelRatio: 3,
         backgroundColor: '#fffdfa',
+        cacheBust: true,
+        width: Math.ceil(faceRect.width),
+        height: Math.ceil(exportHeight),
       });
       const link = document.createElement('a');
       link.download = 'guilttrip-receipt.png';
@@ -294,7 +299,11 @@ export default function Home() {
       link.click();
       link.remove();
     } finally {
-      exportNode.remove();
+      if (previousStyle) {
+        liveFace.setAttribute('style', previousStyle);
+      } else {
+        liveFace.removeAttribute('style');
+      }
     }
   }
 
