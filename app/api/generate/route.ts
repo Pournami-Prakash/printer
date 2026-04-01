@@ -469,29 +469,29 @@ function rolePhrase(details: string) {
 function fallbackFront(mood: Mood, intensity: Intensity, role: string, situation: ReturnType<typeof inferFallbackSituation>) {
   const roastBank: Record<Mood, string[]> = {
     drama: [
-      `Breaking news: a ${role} let ${situation.image}.`,
-      `Please, a ${role} doing this? ${situation.image}.`,
-      `Live footage of a ${role} making ${situation.label} look like prestige television.`,
+      `Breaking news: a ${role} turned ${situation.label} into a full public scandal.`,
+      `Please, a ${role} doing this? The whole building has notes already.`,
+      `Live footage of a ${role} giving this tiny problem premiere-night energy.`,
     ],
     guilt: [
-      `For a ${role}, you really do ${situation.behavior}.`,
-      `How is a ${role} out here acting like this when ${situation.image}?`,
-      `A ${role} should not be losing to this. ${situation.image}.`,
+      `For a ${role}, this is administratively embarrassing.`,
+      `How is a ${role} out here acting like this over one normal responsibility?`,
+      `A ${role} should not be losing to something this operationally basic.`,
     ],
     hug: [
-      `Love you badly, but for a ${role}, this is a lot of drama over one small thing.`,
-      `Sweetheart, a ${role} does not need to let ${situation.image}.`,
-      `You are a ${role}, baby. We cannot keep letting tiny problems feel mythic.`,
+      `Love you badly, but for a ${role}, this is a lot of emotional production over one small thing.`,
+      `Sweetheart, a ${role} does not need to hand this much power to one tiny inconvenience.`,
+      `You are a ${role}, baby. We cannot keep letting small tasks become mythology.`,
     ],
     doom: [
-      `Prophecy says a ${role} let ${situation.image}.`,
-      `The omens are humiliating: a ${role} and yet ${situation.image}.`,
-      `Balcony report: a ${role} is once again behaving like mild inconvenience is destiny.`,
+      `Prophecy says a ${role} has mistaken a minor inconvenience for destiny.`,
+      `The omens are humiliating: a ${role} and yet this tiny issue is winning.`,
+      `Balcony report: a ${role} is once again behaving like mild inconvenience is a curse.`,
     ],
     goblin: [
-      `Be serious, a ${role} should not be out here letting ${situation.image}.`,
+      `Be serious, a ${role} should not be out here making nonsense look load-bearing.`,
       `Tiny question: why is a ${role} acting like this when the task is barely sentient?`,
-      `A ${role} doing this is exactly why the village stopped trusting vibes.`,
+      `A ${role} doing this is exactly why the neighborhood cats no longer trust vibes.`,
     ],
     hype: [
       `You are a ${role}; this is beneath your brand. Go win the tiniest battle imaginable.`,
@@ -526,7 +526,11 @@ function fallbackFront(mood: Mood, intensity: Intensity, role: string, situation
     ],
   };
 
-  const punch = punchBank[intensity][Math.abs(role.length + situation.behavior.length) % punchBank[intensity].length];
+  const punchOptions = punchBank[intensity].filter(
+    (candidate) => !line.toLowerCase().includes(candidate.toLowerCase())
+  );
+  const punchSource = punchOptions.length > 0 ? punchOptions : punchBank[intensity];
+  const punch = punchSource[Math.abs(role.length + situation.behavior.length) % punchSource.length];
   return `${line} ${punch}`;
 }
 

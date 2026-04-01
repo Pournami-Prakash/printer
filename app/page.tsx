@@ -182,7 +182,7 @@ export default function Home() {
     setVisibleReceipt(nextReceipt);
   }
 
-  async function generate(input?: string) {
+  async function generate(input?: string, previousMainOverride?: string) {
     if (loading) return;
 
     const finalText = (input || text).trim();
@@ -201,7 +201,7 @@ export default function Home() {
           intensity,
           memory: getMemory(),
           variationSeed: Math.floor(Math.random() * 1000000),
-          previousMain: visibleReceipt?.main || receipt?.main || '',
+          previousMain: previousMainOverride ?? visibleReceipt?.main ?? receipt?.main ?? '',
         }),
       });
 
@@ -312,7 +312,8 @@ export default function Home() {
     }
   }
 
-  function redo() {
+  async function redo() {
+    const previousMain = visibleReceipt?.main || receipt?.main || '';
     setReceipt(null);
     setVisibleReceipt(null);
     setReceiptSide('front');
@@ -323,6 +324,7 @@ export default function Home() {
         block: 'start',
       });
     }, 120);
+    await generate(text, previousMain);
   }
 
   function tearReceipt() {
