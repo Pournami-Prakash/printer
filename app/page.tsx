@@ -138,19 +138,7 @@ export default function Home() {
       setVisibleMainLineCount(0);
       return;
     }
-    const lines = splitRoastLines(visibleReceipt.main);
     setVisibleMainLineCount(1);
-    if (lines.length <= 1) return;
-    const timer = window.setInterval(() => {
-      setVisibleMainLineCount((count) => {
-        if (count >= lines.length) {
-          window.clearInterval(timer);
-          return count;
-        }
-        return count + 1;
-      });
-    }, 360);
-    return () => window.clearInterval(timer);
   }, [visibleReceipt]);
 
   const activeTheme = moodTheme[selectedMood];
@@ -160,12 +148,7 @@ export default function Home() {
   const intensityIndex = intensitySteps.findIndex((step) => step.value === intensity);
   const canContinue = followUpAnswer.trim().length > 0;
   const canPrint = text.trim().length > 0;
-  const visibleRoastLines = visibleReceipt
-    ? splitRoastLines(visibleReceipt.main).slice(
-        0,
-        visibleMainLineCount > 0 ? visibleMainLineCount : splitRoastLines(visibleReceipt.main).length
-      )
-    : [];
+  const visibleRoastLines = visibleReceipt ? [visibleReceipt.main] : [];
   const stageStyle = {
     '--theme-accent': activeTheme.accent,
     '--theme-soft': activeTheme.soft,
@@ -607,11 +590,4 @@ export default function Home() {
       </section>
     </main>
   );
-}
-
-function splitRoastLines(value: string) {
-  return value
-    .split(/(?<=[.!?])\s+/)
-    .map((line) => line.trim())
-    .filter(Boolean);
 }

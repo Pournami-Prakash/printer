@@ -531,7 +531,9 @@ function fallbackFront(mood: Mood, intensity: Intensity, role: string, situation
   );
   const punchSource = punchOptions.length > 0 ? punchOptions : punchBank[intensity];
   const punch = punchSource[Math.abs(role.length + situation.behavior.length) % punchSource.length];
-  return `${line} ${punch}`;
+  const base = line.replace(/[.!?]\s*$/, "");
+  const tail = punch.charAt(0).toLowerCase() + punch.slice(1);
+  return `${base}, ${tail}`;
 }
 
 function buildFallbackReceipt(
