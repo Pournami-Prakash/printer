@@ -138,6 +138,15 @@ function needsInterpretiveRewrite(text: string) {
   return basicTaskStarts.some((start) => cleaned.startsWith(start));
 }
 
+function buildProfessionSteering(details?: string) {
+  const role = (details || "").trim();
+  if (!role) {
+    return "No profession was provided. Roast the behavior itself.";
+  }
+
+  return `Profession anchor: the user says they are "${role}". Use that title as contrast. The joke should partly be that someone with this role, identity, or supposed competence is acting like this. Do not just restate the title; make the profession sharpen the insult.`;
+}
+
 function behaviorGuideForMood(mood: Mood) {
   if (mood === "hype") {
     return `
@@ -184,6 +193,8 @@ Your job:
 - use the personal context if provided, especially their job title or work identity
 - use at least one concrete real detail from the user's exact input or context
 - make it feel obviously about this person, not a generic procrastination template
+- if a profession is provided, make the roast hinge on the absurd contrast between that profession and this behavior
+- the best structure is: "for someone who is X, this Y behavior is embarrassing"
 - prefer ridicule, wit, and playful exaggeration over explanation
 - if possible, include one nosy question or one shady observation
 - make the roast hinge on one sharp comparison, insult, or absurdly rude observation
@@ -282,6 +293,7 @@ export function buildPrompt(
   const variation = variationPool[Math.abs(variationSeed ?? 0) % variationPool.length];
   const situation = inferSituation(text, details);
   const mustRewriteLiteralTask = needsInterpretiveRewrite(text);
+  const professionSteering = buildProfessionSteering(details);
   return `
 You are GuiltTrip, a tiny receipt printer that lovingly bullies people into doing things.
 
@@ -295,6 +307,7 @@ Variation target: ${variation}
 Situation type: ${situation.label}
 Situation steering: ${situation.guidance}
 Short generic task: ${mustRewriteLiteralTask ? "yes" : "no"}
+${professionSteering}
 
 Tone guide:
 - ${moodDirections[mood]}
@@ -309,6 +322,7 @@ Interpretation guide:
 - Example: "make dinner tonight" should become something like "you turned one basic adult task into a negotiation with destiny", not a quote of the task.
 - Use the situation steering above as the emotional frame for the joke.
 - If "Short generic task" is yes, do not quote the task text back. Rewrite it into the underlying behavior first, then roast that.
+- If a profession is provided, use it as irony or contrast, not as filler.
 
 Return ONLY valid JSON in this exact shape:
 {"main":"...","best":"...","worst":"..."}

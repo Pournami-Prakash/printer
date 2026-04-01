@@ -268,9 +268,11 @@ function isRoastyResult(
   details: string
 ) {
   const main = tidy(result.main).toLowerCase();
+  const detailKeywords = Array.from(new Set(tokenize(details))).slice(0, 6);
   const combinedInput = `${text} ${details}`.toLowerCase();
   const overlapTerms = Array.from(new Set(tokenize(combinedInput))).slice(0, 10);
   const overlapCount = overlapTerms.filter((term) => main.includes(term)).length;
+  const detailHit = detailKeywords.some((term) => main.includes(term));
   const markerHit = ROAST_MARKERS.some((marker) => main.includes(marker));
   const hasQuestion = main.includes("?");
   const hasSecondClause = /[,;:-]/.test(main);
@@ -310,6 +312,7 @@ function isRoastyResult(
   if (soundsLikeSummary) return false;
   if (tooLiteral) return false;
   if (shortGenericLiteral) return false;
+  if (details.trim() && !detailHit) return false;
   if (stitchedQuotes && !markerHit && !hasComparison && !hasBite) return false;
   if (weakOpen && !markerHit && !hasComparison && !hasBite) return false;
 
