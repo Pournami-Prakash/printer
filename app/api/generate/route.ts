@@ -236,6 +236,32 @@ function echoesInputTooLiterally(main: string, text: string) {
   return longInput && overlapRatio >= 0.7;
 }
 
+function isShortGenericTask(text: string) {
+  const cleaned = normalizeForComparison(text);
+  if (!cleaned) return false;
+  const words = cleaned.split(" ").filter(Boolean);
+  if (words.length <= 4) return true;
+
+  const basicTaskStarts = [
+    "get ",
+    "make ",
+    "reply ",
+    "send ",
+    "clean ",
+    "cook ",
+    "do ",
+    "start ",
+    "finish ",
+    "apply ",
+    "go ",
+    "text ",
+    "call ",
+    "write ",
+  ];
+
+  return basicTaskStarts.some((start) => cleaned.startsWith(start));
+}
+
 function isRoastyResult(
   result: { main: string; best: string; worst: string },
   text: string,
@@ -276,10 +302,14 @@ function isRoastyResult(
   const stitchedQuotes =
     main.includes('"') ||
     main.includes("'") && overlapCount >= 3;
+  const shortGenericLiteral =
+    isShortGenericTask(text) &&
+    (stitchedQuotes || overlapCount >= 2);
 
   if (main.length < 45) return false;
   if (soundsLikeSummary) return false;
   if (tooLiteral) return false;
+  if (shortGenericLiteral) return false;
   if (stitchedQuotes && !markerHit && !hasComparison && !hasBite) return false;
   if (weakOpen && !markerHit && !hasComparison && !hasBite) return false;
 

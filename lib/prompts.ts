@@ -108,6 +108,36 @@ function inferSituation(text: string, details?: string) {
   };
 }
 
+function needsInterpretiveRewrite(text: string) {
+  const cleaned = text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = cleaned.split(" ").filter(Boolean);
+
+  if (words.length <= 4) return true;
+
+  const basicTaskStarts = [
+    "get ",
+    "make ",
+    "reply ",
+    "send ",
+    "clean ",
+    "cook ",
+    "do ",
+    "start ",
+    "finish ",
+    "apply ",
+    "go ",
+    "text ",
+    "call ",
+    "write ",
+  ];
+
+  return basicTaskStarts.some((start) => cleaned.startsWith(start));
+}
+
 function behaviorGuideForMood(mood: Mood) {
   if (mood === "hype") {
     return `
@@ -251,6 +281,7 @@ export function buildPrompt(
         : roastVariationAngles;
   const variation = variationPool[Math.abs(variationSeed ?? 0) % variationPool.length];
   const situation = inferSituation(text, details);
+  const mustRewriteLiteralTask = needsInterpretiveRewrite(text);
   return `
 You are GuiltTrip, a tiny receipt printer that lovingly bullies people into doing things.
 
@@ -263,6 +294,7 @@ Intensity: ${intensity}
 Variation target: ${variation}
 Situation type: ${situation.label}
 Situation steering: ${situation.guidance}
+Short generic task: ${mustRewriteLiteralTask ? "yes" : "no"}
 
 Tone guide:
 - ${moodDirections[mood]}
@@ -276,6 +308,7 @@ Interpretation guide:
 - Example: "don't want to get out of bed because it's raining" should become something like "one cloudy morning and your ambition filed for leave", not a clunky restatement.
 - Example: "make dinner tonight" should become something like "you turned one basic adult task into a negotiation with destiny", not a quote of the task.
 - Use the situation steering above as the emotional frame for the joke.
+- If "Short generic task" is yes, do not quote the task text back. Rewrite it into the underlying behavior first, then roast that.
 
 Return ONLY valid JSON in this exact shape:
 {"main":"...","best":"...","worst":"..."}
