@@ -48,7 +48,7 @@ const ROAST_MARKERS = [
 ] as const;
 
 function isMood(v: string): v is Mood {
-  return ["drama", "guilt", "hug", "doom", "goblin"].includes(v);
+  return ["drama", "guilt", "hug", "doom", "goblin", "hype", "nice"].includes(v);
 }
 
 function isIntensity(v: string): v is Intensity {
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { text, details, memory, mood, intensity, variationSeed } = await req.json();
+    const { text, details, memory, mood, intensity, variationSeed, previousMain } = await req.json();
 
     if (!text || text.length < 5) {
       return NextResponse.json(
@@ -85,9 +85,19 @@ export async function POST(req: NextRequest) {
         ? variationSeed
         : Math.floor(Math.random() * 1000000);
 
-    const prompt = buildPrompt(text, safeMood, safeIntensity, memory, finalDetails, finalVariationSeed);
+    const finalPreviousMain = typeof previousMain === "string" ? previousMain : "";
 
-    const result = await getBestReceiptReply(prompt, text, finalDetails);
+    const prompt = buildPrompt(
+      text,
+      safeMood,
+      safeIntensity,
+      memory,
+      finalDetails,
+      finalVariationSeed,
+      finalPreviousMain
+    );
+
+    const result = await getBestReceiptReply(prompt, text, finalDetails, safeMood, finalPreviousMain);
 
     return NextResponse.json(
       result ?? buildFallbackReceipt(text, finalDetails, safeMood, safeIntensity, finalVariationSeed)
@@ -103,21 +113,29 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function getBestReceiptReply(prompt: string, text: string, details: string) {
+async function getBestReceiptReply(
+  prompt: string,
+  text: string,
+  details: string,
+  mood: Mood,
+  previousMain: string
+) {
   const attempts: Array<"groq" | "llm7"> = process.env.GROQ_API_KEY ? ["groq", "llm7"] : ["llm7"];
 
   for (const provider of attempts) {
     try {
       const result = await generateReply({ prompt, provider });
       const grounded = isGroundedResult(result, text, details);
-      const roasty = isRoastyResult(result, text, details);
-      if (grounded && roasty) {
+      const acceptable = isAcceptableResult(result, text, details, mood);
+      const repeated = isTooSimilarToPrevious(result.main, previousMain);
+      if (grounded && acceptable && !repeated) {
         return result;
       }
       console.warn(`[generate] ${provider} returned a weak result`, {
         provider,
         grounded,
-        roasty,
+        acceptable,
+        repeated,
         preview: result.main.slice(0, 180),
       });
     } catch (error) {
@@ -127,6 +145,41 @@ async function getBestReceiptReply(prompt: string, text: string, details: string
   }
 
   return null;
+}
+
+function isTooSimilarToPrevious(main: string, previousMain: string) {
+  const current = normalizeForComparison(main);
+  const previous = normalizeForComparison(previousMain);
+  if (!current || !previous) return false;
+  if (current === previous) return true;
+  if (current.includes(previous) || previous.includes(current)) return true;
+
+  const currentWords = Array.from(new Set(current.split(" ").filter(Boolean)));
+  const previousWords = new Set(previous.split(" ").filter(Boolean));
+  const overlap = currentWords.filter((word) => previousWords.has(word)).length;
+  const overlapRatio = overlap / Math.max(1, currentWords.length);
+  return overlapRatio >= 0.72;
+}
+
+function normalizeForComparison(value: string) {
+  return tidy(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isAcceptableResult(
+  result: { main: string; best: string; worst: string },
+  text: string,
+  details: string,
+  mood: Mood
+) {
+  if (mood === "hype" || mood === "nice") {
+    return isSupportiveResult(result, text, details, mood);
+  }
+
+  return isRoastyResult(result, text, details);
 }
 
 function tokenize(value: string) {
@@ -206,6 +259,64 @@ function isRoastyResult(
     (overlapCount >= 2 && hasSecondClause && main.length >= 60) ||
     (overlapCount >= 2 && main.length >= 70)
   );
+}
+
+function isSupportiveResult(
+  result: { main: string; best: string; worst: string },
+  text: string,
+  details: string,
+  mood: Mood
+) {
+  const main = tidy(result.main).toLowerCase();
+  const combinedInput = `${text} ${details}`.toLowerCase();
+  const overlapTerms = Array.from(new Set(tokenize(combinedInput))).slice(0, 10);
+  const overlapCount = overlapTerms.filter((term) => main.includes(term)).length;
+  const positiveMarkers = [
+    "you've got",
+    "you can",
+    "one step",
+    "you deserve",
+    "proud",
+    "capable",
+    "momentum",
+    "start",
+    "begin",
+    "lighter",
+    "brave",
+    "relief",
+    "unstoppable",
+    "iconic",
+    "spotlight",
+    "win",
+    "handle this",
+    "got this"
+  ];
+  const negativeMarkers = [
+    "embarrassing",
+    "idiot",
+    "stupid",
+    "shame",
+    "clown",
+    "pathetic",
+    "self-awareness is optional",
+    "downloadable content",
+    "kindly but firmly",
+    "you should know that",
+    "should know that",
+    "be honest",
+    "not going to get kinder by waiting"
+  ];
+
+  if (main.length < 30) return false;
+  if (negativeMarkers.some((marker) => main.includes(marker))) return false;
+  if (overlapCount === 0) return false;
+
+  const markerHit = positiveMarkers.some((marker) => main.includes(marker));
+  if (mood === "hype") {
+    return markerHit || main.includes("legend") || main.includes("main character") || main.includes("moment");
+  }
+
+  return markerHit || main.includes("gentle") || main.includes("okay") || main.includes("kind") || main.includes("feel better") || main.includes("you're allowed") || main.includes("one small step");
 }
 
 function tidy(value: string) {
@@ -415,6 +526,82 @@ function buildFallbackReceipt(
           main: `Inspection complete: a "${contextLine || "full-time goblin executive"}" has once again left "${taskLine}" untouched like it might scare itself away. Your nonsense has infrastructure.`,
           best: `You do "${taskLine}" and regain one molecule of dignity.`,
           worst: `"${taskLine}" becomes a biohazard.`
+        }
+      ]
+    },
+    hype: {
+      soft: [
+        {
+          main: `You are literally a "${contextLine || "future icon"}" and "${taskLine}" is one tiny decision away from making you feel ten times hotter. Please act accordingly.`,
+          best: `You do "${taskLine}" and your aura levels up.`,
+          worst: `You stall and miss an easy win.`
+        },
+        {
+          main: `As a "${contextLine || "walking comeback story"}", you are too close to momentum to be weird about "${taskLine}". This could be your cute little victory lap.`,
+          best: `You do "${taskLine}" and feel unstoppable.`,
+          worst: `"${taskLine}" sits there stealing your sparkle.`
+        }
+      ],
+      brutal: [
+        {
+          main: `Be serious, a "${contextLine || "main character on paper"}" cannot keep fumbling "${taskLine}" like this. You are one completed task away from being insufferably powerful.`,
+          best: `You do "${taskLine}" and become annoying in the best way.`,
+          worst: `You keep talking big while "${taskLine}" laughs.`
+        },
+        {
+          main: `You have the job title "${contextLine || "upcoming legend"}" and yet "${taskLine}" is still waiting? That is not mysterious. That is bad branding.`,
+          best: `You finish "${taskLine}" and the brand recovers.`,
+          worst: `"${taskLine}" exposes the gap between the vision and the effort.`
+        }
+      ],
+      unhinged: [
+        {
+          main: `I am trying to market a "${contextLine || "future icon"}" here and you are making "${taskLine}" look optional. Please stop sabotaging your own trailer moment.`,
+          best: `You do "${taskLine}" and the montage finally hits.`,
+          worst: `You postpone "${taskLine}" and flop theatrically.`
+        },
+        {
+          main: `The press release said "${contextLine || "legend in progress"}" but then I saw "${taskLine}" still untouched and nearly choked on the confetti. You cannot be iconic and inactive at once.`,
+          best: `You handle "${taskLine}" and earn the spotlight.`,
+          worst: `Your potential becomes decorative.`
+        }
+      ]
+    },
+    nice: {
+      soft: [
+        {
+          main: `Hey, "${taskLine}" will probably feel smaller once you begin, and a "${contextLine || "very tired little person"}" deserves that relief.`,
+          best: `You do "${taskLine}" and feel lighter.`,
+          worst: `It keeps sitting on your mind all day.`
+        },
+        {
+          main: `A gentle note for a "${contextLine || "human being doing their best"}": "${taskLine}" does not need to feel this huge tonight.`,
+          best: `You start "${taskLine}" and feel proud.`,
+          worst: `You carry "${taskLine}" around longer.`
+        }
+      ],
+      brutal: [
+        {
+          main: `Lovingly, a "${contextLine || "good-hearted overthinker"}" deserves the peace that comes after starting "${taskLine}", not another evening of carrying it around.`,
+          best: `You do "${taskLine}" and unclench.`,
+          worst: `"${taskLine}" keeps nibbling at your energy.`
+        },
+        {
+          main: `Sweet pea, "${taskLine}" is probably kinder than the story your brain is telling about it, and a "${contextLine || "sweet disaster"}" can take one small step tonight.`,
+          best: `You handle "${taskLine}" and rest easier.`,
+          worst: `It keeps following you around.`
+        }
+      ],
+      unhinged: [
+        {
+          main: `My sweetest professional opinion is that a "${contextLine || "soft little angel"}" only needs five brave minutes to make "${taskLine}" feel less loud.`,
+          best: `You do "${taskLine}" and adore yourself after.`,
+          worst: `"${taskLine}" keeps haunting the room softly.`
+        },
+        {
+          main: `With enormous affection, "${taskLine}" is not a dragon, and a "${contextLine || "tender overthinker"}" does not need a heroic soundtrack to begin.`,
+          best: `You start "${taskLine}" and the fear shrinks.`,
+          worst: `You keep feeding the dread.`
         }
       ]
     }

@@ -500,6 +500,16 @@ button {
   border-color: #41509a;
 }
 
+.goblin-avatar.mood-hype {
+  background: #ffb38c;
+  border-color: #8b4b34;
+}
+
+.goblin-avatar.mood-nice {
+  background: #a8ddff;
+  border-color: #3a6f8e;
+}
+
 .goblin-avatar.mood-drama .goblin-eye.left,
 .goblin-avatar.mood-drama .goblin-eye.right {
   top: 16px;
@@ -551,6 +561,33 @@ button {
   width: 16px;
   height: 5px;
   bottom: 8px;
+}
+
+.goblin-avatar.mood-hype .goblin-blush {
+  background: #ffd2a8;
+}
+
+.goblin-avatar.mood-hype .goblin-mouth {
+  width: 14px;
+  height: 4px;
+  bottom: 8px;
+  border-radius: 999px 999px 0 0;
+}
+
+.goblin-avatar.mood-nice .goblin-eye.left,
+.goblin-avatar.mood-nice .goblin-eye.right {
+  top: 17px;
+}
+
+.goblin-avatar.mood-nice .goblin-blush {
+  background: #c8efff;
+}
+
+.goblin-avatar.mood-nice .goblin-mouth {
+  width: 12px;
+  height: 3px;
+  bottom: 9px;
+  border-radius: 0 0 999px 999px;
 }
 
 .goblin-horn,
@@ -801,6 +838,39 @@ button {
   left: 8px;
   top: 14px;
   background: #ffd55a;
+}
+
+.mood-icon.star::before {
+  left: 12px;
+  top: 6px;
+  background: #ff9966;
+  box-shadow:
+    4px 0 #ffd25d,
+    8px 0 #ff9966,
+    4px 4px #ffd25d,
+    0 8px #ff9966,
+    4px 8px #ffd25d,
+    8px 8px #ff9966,
+    4px 12px #ffd25d,
+    4px 16px #ff9966;
+}
+
+.mood-icon.cloud::before {
+  left: 8px;
+  top: 12px;
+  background: #7cc6f7;
+  box-shadow:
+    4px -4px #bce6ff,
+    8px -4px #bce6ff,
+    12px 0 #7cc6f7,
+    0 4px #bce6ff,
+    4px 4px #e8f7ff,
+    8px 4px #e8f7ff,
+    12px 4px #bce6ff,
+    16px 4px #7cc6f7,
+    4px 8px #bce6ff,
+    8px 8px #bce6ff,
+    12px 8px #bce6ff;
 }
 
 .rail-wrap {
@@ -1376,11 +1446,26 @@ button {
 
 @media (max-width: 520px) {
   .experience-shell {
+    display: flex;
+    justify-content: center;
     padding: 12px 10px 22px;
+  }
+
+  .phone-stage {
+    width: 100%;
+    max-width: 392px;
+    margin: 0 auto;
   }
 
   .phone-frame {
     padding: 2px 0 18px;
+  }
+
+  .device-stage,
+  .printer-shell,
+  .receipt-actions {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .hero-title {

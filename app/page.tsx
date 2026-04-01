@@ -12,6 +12,7 @@ type MoodOption = {
   label: string;
   value: Mood;
   icon: string;
+  goblinName: string;
   goblinLabel: string;
   goblinSpeech: string;
   promptSeed: string;
@@ -24,11 +25,13 @@ type MoodOption = {
 };
 
 const moods: MoodOption[] = [
-  { label: 'Drama\nQueen', value: 'drama', icon: 'megaphone', goblinLabel: 'gossip', goblinSpeech: 'what is your job title, celebrity?', promptSeed: 'Roast me like a suspicious coworker with excellent eyeliner.', taskLabel: 'what scandal are we avoiding?', receiptWorld: 'scandal bulletin', bestLabel: 'if you behave', worstLabel: 'if you embarrass us', footerLine: 'witnessed by the whole building', statusLines: ['checking the gossip chain...', 'powdering nose, judging...', 'pulling your scandal file...'] },
-  { label: 'Guilt\nTrip', value: 'guilt', icon: 'mug', goblinLabel: 'landlord', goblinSpeech: 'job title? quickly.', promptSeed: 'Ask if my actual profession is avoiding the obvious.', taskLabel: 'what bill is emotionally overdue?', receiptWorld: 'rent notice', bestLabel: 'paid on time timeline', worstLabel: 'late fee timeline', footerLine: 'filed under avoidable behavior', statusLines: ['reviewing your excuses...', 'checking your payment history...', 'printing the disappointment...'] },
-  { label: 'Soft\nHug', value: 'hug', icon: 'heart', goblinLabel: 'sweetie', goblinSpeech: 'baby, what do you do for work?', promptSeed: 'Be sweet but drag me for making one task dramatic.', taskLabel: 'what tiny mountain are we crying over?', receiptWorld: 'concern note', bestLabel: 'if you love yourself', worstLabel: 'if you keep spiraling', footerLine: 'signed by a friend with standards', statusLines: ['warming up the forehead kiss...', 'finding the loving drag...', 'packing concern with sass...'] },
-  { label: 'Doom\nForecast', value: 'doom', icon: 'orb', goblinLabel: 'balcony witch', goblinSpeech: 'state your profession before the omen.', promptSeed: 'Predict my downfall if I keep dodging this task.', taskLabel: 'which omen are we ignoring?', receiptWorld: 'omen report', bestLabel: 'lucky timeline', worstLabel: 'clown timeline', footerLine: 'approved by the balcony oracle', statusLines: ['consulting the omen...', 'reading the cursed timeline...', 'forecasting your nonsense...'] },
-  { label: 'Goblin\nGremlin', value: 'goblin', icon: 'spark', goblinLabel: 'goblin', goblinSpeech: 'what is your alleged profession?', promptSeed: 'Roast me like my job title is a rumor.', taskLabel: 'what mess needs goblin intervention?', receiptWorld: 'incident report', bestLabel: 'if you act right', worstLabel: 'if you stay weird', footerLine: 'reviewed by neighbourhood cats', statusLines: ['rattling through your chaos...', 'collecting goblin evidence...', 'filing a tiny incident report...'] },
+  { label: 'Drama\nQueen', value: 'drama', icon: 'megaphone', goblinName: 'Gossip Goblin', goblinLabel: 'gossip', goblinSpeech: 'what is your job title, celebrity?', promptSeed: 'Roast me like a suspicious coworker with excellent eyeliner.', taskLabel: 'what scandal are we avoiding?', receiptWorld: 'scandal bulletin', bestLabel: 'if you behave', worstLabel: 'if you embarrass us', footerLine: 'witnessed by the whole building', statusLines: ['checking the gossip chain...', 'powdering nose, judging...', 'pulling your scandal file...'] },
+  { label: 'Guilt\nTrip', value: 'guilt', icon: 'mug', goblinName: 'Landlord Goblin', goblinLabel: 'landlord', goblinSpeech: 'job title? quickly.', promptSeed: 'Ask if my actual profession is avoiding the obvious.', taskLabel: 'what bill is emotionally overdue?', receiptWorld: 'rent notice', bestLabel: 'paid on time timeline', worstLabel: 'late fee timeline', footerLine: 'filed under avoidable behavior', statusLines: ['reviewing your excuses...', 'checking your payment history...', 'printing the disappointment...'] },
+  { label: 'Soft\nHug', value: 'hug', icon: 'heart', goblinName: 'Sweetheart Goblin', goblinLabel: 'sweetie', goblinSpeech: 'baby, what do you do for work?', promptSeed: 'Be sweet but drag me for making one task dramatic.', taskLabel: 'what tiny mountain are we crying over?', receiptWorld: 'concern note', bestLabel: 'if you love yourself', worstLabel: 'if you keep spiraling', footerLine: 'signed by a friend with standards', statusLines: ['warming up the forehead kiss...', 'finding the loving drag...', 'packing concern with sass...'] },
+  { label: 'Doom\nForecast', value: 'doom', icon: 'orb', goblinName: 'Oracle Goblin', goblinLabel: 'balcony witch', goblinSpeech: 'state your profession before the omen.', promptSeed: 'Predict my downfall if I keep dodging this task.', taskLabel: 'which omen are we ignoring?', receiptWorld: 'omen report', bestLabel: 'lucky timeline', worstLabel: 'clown timeline', footerLine: 'approved by the balcony oracle', statusLines: ['consulting the omen...', 'reading the cursed timeline...', 'forecasting your nonsense...'] },
+  { label: 'Goblin\nGremlin', value: 'goblin', icon: 'spark', goblinName: 'Chaos Goblin', goblinLabel: 'goblin', goblinSpeech: 'what is your alleged profession?', promptSeed: 'Roast me like my job title is a rumor.', taskLabel: 'what mess needs goblin intervention?', receiptWorld: 'incident report', bestLabel: 'if you act right', worstLabel: 'if you stay weird', footerLine: 'reviewed by neighbourhood cats', statusLines: ['rattling through your chaos...', 'collecting goblin evidence...', 'filing a tiny incident report...'] },
+  { label: 'Hype\nGoblin', value: 'hype', icon: 'star', goblinName: 'Hype Goblin', goblinLabel: 'publicist', goblinSpeech: 'what dazzling profession are we claiming today?', promptSeed: 'Hype me up like success is already waiting in the parking lot.', taskLabel: 'what move are we making next?', receiptWorld: 'star memo', bestLabel: 'spotlight timeline', worstLabel: 'missed-the-moment timeline', footerLine: 'approved by your imaginary fan club', statusLines: ['ironing your victory speech...', 'warming up the applause...', 'printing your main character memo...'] },
+  { label: 'Nice\nGoblin', value: 'nice', icon: 'cloud', goblinName: 'Nice Goblin', goblinLabel: 'helper', goblinSpeech: 'what do you do, sweet pea?', promptSeed: 'Be kind, reassuring, and gently push me to start.', taskLabel: 'what would feel better if we handled it?', receiptWorld: 'support note', bestLabel: 'gentle win timeline', worstLabel: 'tired tomorrow timeline', footerLine: 'signed by a goblin with good intentions', statusLines: ['folding a tiny encouragement note...', 'looking for the gentle nudge...', 'printing something nicer than your inner voice...'] },
 ];
 
 const intensitySteps: { value: Intensity; label: string }[] = [
@@ -198,6 +201,7 @@ export default function Home() {
           intensity,
           memory: getMemory(),
           variationSeed: Math.floor(Math.random() * 1000000),
+          previousMain: visibleReceipt?.main || receipt?.main || '',
         }),
       });
 
@@ -359,12 +363,12 @@ export default function Home() {
                 <div className="goblin-card">
                   <button
                     type="button"
-                    className={`goblin-avatar mood-${selectedMood}${!flowUnlocked ? ' clickable' : ''}`}
-                    onClick={!flowUnlocked ? () => {
+                    className={`goblin-avatar mood-${selectedMood} clickable`}
+                    onClick={() => {
                       setMoodTouched(true);
                       setSelectedMood(shiftMood(selectedMood, 1));
-                    } : undefined}
-                    aria-label={!flowUnlocked ? 'Change character' : undefined}
+                    }}
+                    aria-label="Change goblin"
                   >
                     <span className="goblin-horn left" />
                     <span className="goblin-horn right" />
@@ -375,9 +379,9 @@ export default function Home() {
                     <span className="goblin-mouth" />
                   </button>
                   <div className="goblin-copy">
-                    <p className="goblin-name">Emotional Support Goblin</p>
+                    <p className="goblin-name">{activeMood.goblinName}</p>
                     <p className="goblin-speech">{activeMood.goblinLabel}. {activeMood.goblinSpeech}</p>
-                    {!flowUnlocked ? <p className="goblin-hint">tap the goblin to switch character</p> : null}
+                    <p className="goblin-hint">tap the goblin to switch character</p>
                   </div>
                 </div>
 

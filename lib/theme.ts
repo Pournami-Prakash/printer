@@ -47,5 +47,21 @@ export const moodTheme: Record<Mood, {
     card: "#3c5a28",
     emoji: "👹",
     gradient: "linear-gradient(135deg, #f0ffd7 0%, #c9ee90 50%, #99cb59 100%)"
+  },
+  hype: {
+    accent: "#ff8a5c",
+    glow: "rgba(255, 138, 92, 0.28)",
+    soft: "#ffe2d7",
+    card: "#6a3a2e",
+    emoji: "⭐",
+    gradient: "linear-gradient(135deg, #fff0e3 0%, #ffc9b2 50%, #ff9c73 100%)"
+  },
+  nice: {
+    accent: "#6bc6ff",
+    glow: "rgba(107, 198, 255, 0.28)",
+    soft: "#dbf2ff",
+    card: "#2b5870",
+    emoji: "☁️",
+    gradient: "linear-gradient(135deg, #eefaff 0%, #caeaff 50%, #8dd3ff 100%)"
   }
 };
