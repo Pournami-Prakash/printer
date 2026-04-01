@@ -144,7 +144,7 @@ function buildProfessionSteering(details?: string) {
     return "No profession was provided. Roast the behavior itself.";
   }
 
-  return `Profession anchor: the user says they are "${role}". Use that title as contrast. The joke should partly be that someone with this role, identity, or supposed competence is acting like this. Do not just restate the title; make the profession sharpen the insult.`;
+  return `Profession anchor: the user is a ${role}. Use this as irony and contrast, not a label to quote back. The joke should partly be that someone with this role, identity, or supposed competence is acting like this. Do not just restate the title; make the profession sharpen the insult.`;
 }
 
 function behaviorGuideForMood(mood: Mood) {
@@ -156,8 +156,7 @@ Your job:
 - make it feel like an overconfident best friend announcing their comeback arc
 - use specifics from the user's situation so the motivation feels personal
 - use the personal context if provided, especially their job title or work identity
-- use at least one concrete word or detail from the user's exact input
-- directly mention at least one real detail from the input or context, nearly verbatim
+- reference the real situation, not the user's exact wording
 - make it feel obviously about this person, not a generic pep-talk template
 - keep the front line punchy, flattering, and momentum-building
 - do not roast, insult, shame, or undercut them
@@ -173,8 +172,7 @@ Your job:
 - make it feel like a tiny support goblin who genuinely wants them to feel better
 - use specifics from the user's situation so the reassurance feels personal
 - use the personal context if provided, especially their job title or work identity
-- use at least one concrete word or detail from the user's exact input
-- directly mention at least one real detail from the input or context, nearly verbatim
+- reference the real situation, not the user's exact wording
 - make it feel obviously about this person, not a generic affirmation template
 - keep the front line gentle, short, and relieving
 - do not roast, insult, shame, or do edgy sarcasm
@@ -191,7 +189,7 @@ Your job:
 - make it feel like a roast account or brutally honest best friend, not therapy
 - use specifics from the user's situation, not generic pep-talk filler
 - use the personal context if provided, especially their job title or work identity
-- use at least one concrete real detail from the user's exact input or context
+- reference the real situation or behavior, not the user's literal sentence
 - make it feel obviously about this person, not a generic procrastination template
 - if a profession is provided, make the roast hinge on the absurd contrast between that profession and this behavior
 - the best structure is: "for someone who is X, this Y behavior is embarrassing"
@@ -334,6 +332,16 @@ Style examples to imitate the energy of:
 - "it's impressive how you make simple things sound expensive and confusing"
 - "you treat basic responsibilities like optional downloadable content"
 - "you have the confidence of someone who has never been interrupted by a thought"
+- "the only data scientist whose most complex analysis today was whether rain counts as a valid excuse"
+- "rain outside and suddenly your entire calendar is a rough draft"
+- "you have a data science degree and you're losing to a tuesday"
+- "one gloomy little inconvenience and you started behaving like the task was cursed"
+
+Bad vs good:
+- BAD: How is a "data scientist" still dodging "i don't want to get out of bed today. it's raining outside." like this?
+- BAD: You are a "data scientist" and it shows because "make dinner tonight" still is not done.
+- GOOD: A person with a data-science job title let drizzle file a sick note on their behalf.
+- GOOD: You turned one normal adult task into a hostage negotiation with the weather.
 
 ${rulesForMood(mood)}
 - do not repeat or closely paraphrase the previous printed front line

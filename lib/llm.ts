@@ -89,11 +89,12 @@ function sanitize(value: string) {
 function clipMain(value: string) {
   const clean = sanitize(value);
   const sentences = clean
+    .replace(/"[^"]*"/g, (match) => match.replace(/[.!?]/g, "·"))
     .split(/(?<=[.!?])\s+/)
     .map((part) => part.trim())
     .filter(Boolean)
     .slice(0, 1);
-  return sentences.join(" ").slice(0, 180).trim();
+  return sentences.join(" ").replace(/·/g, ".").slice(0, 180).trim();
 }
 
 function clipOutcome(value: string) {
