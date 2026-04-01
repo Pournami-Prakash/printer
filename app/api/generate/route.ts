@@ -210,6 +210,32 @@ function isGroundedResult(
   return taskGrounded && detailsGrounded;
 }
 
+function echoesInputTooLiterally(main: string, text: string) {
+  const normalizedMain = normalizeForComparison(main);
+  const normalizedText = normalizeForComparison(text);
+  if (!normalizedMain || !normalizedText) return false;
+
+  const mainWords = normalizedMain.split(" ").filter(Boolean);
+  const textWords = normalizedText.split(" ").filter(Boolean);
+  const inputPhrase = textWords.join(" ");
+  const longInput = textWords.length >= 5;
+
+  if (longInput && normalizedMain.includes(inputPhrase)) return true;
+
+  const exactSpan = textWords
+    .filter((word) => word.length >= 4)
+    .slice(0, 8)
+    .join(" ");
+
+  if (exactSpan && exactSpan.length >= 18 && normalizedMain.includes(exactSpan)) {
+    return true;
+  }
+
+  const overlap = textWords.filter((word) => mainWords.includes(word)).length;
+  const overlapRatio = overlap / Math.max(1, textWords.length);
+  return longInput && overlapRatio >= 0.7;
+}
+
 function isRoastyResult(
   result: { main: string; best: string; worst: string },
   text: string,
@@ -246,9 +272,15 @@ function isRoastyResult(
     main.includes("the update") ||
     main.includes("today you") ||
     main.includes("applying for") && overlapCount >= 2 && !markerHit;
+  const tooLiteral = echoesInputTooLiterally(result.main, text);
+  const stitchedQuotes =
+    main.includes('"') ||
+    main.includes("'") && overlapCount >= 3;
 
   if (main.length < 45) return false;
   if (soundsLikeSummary) return false;
+  if (tooLiteral) return false;
+  if (stitchedQuotes && !markerHit && !hasComparison && !hasBite) return false;
   if (weakOpen && !markerHit && !hasComparison && !hasBite) return false;
 
   return (

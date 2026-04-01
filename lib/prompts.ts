@@ -40,6 +40,74 @@ const niceVariationAngles = [
   "Aim for a cozy, steadying line that helps them take the first step.",
 ];
 
+function inferSituation(text: string, details?: string) {
+  const combined = `${text} ${details || ""}`.toLowerCase();
+
+  const hasAny = (...terms: string[]) => terms.some((term) => combined.includes(term));
+
+  if (hasAny("rain", "raining", "cold", "weather", "bed", "sleep", "tired", "nap")) {
+    return {
+      label: "weather avoidance",
+      guidance:
+        "Treat this as someone giving one small comfort or weather inconvenience enough power to cancel their entire ambition for the day.",
+    };
+  }
+
+  if (hasAny("email", "inbox", "reply", "respond", "message", "text back", "slack")) {
+    return {
+      label: "admin dread",
+      guidance:
+        "Treat this as someone acting like one small communication task is a federal investigation or legal deposition.",
+    };
+  }
+
+  if (hasAny("apply", "application", "resume", "cv", "cover letter", "job", "interview", "linkedin")) {
+    return {
+      label: "career avoidance",
+      guidance:
+        "Treat this as someone turning career maintenance into an archaeological site of avoidance, hesitation, and ego preservation.",
+    };
+  }
+
+  if (hasAny("overthink", "spiral", "thinking", "decide", "decision", "choose", "stuck", "confused")) {
+    return {
+      label: "overthinking spiral",
+      guidance:
+        "Treat this as someone polishing their hesitation until it looks like effort, then calling it progress.",
+    };
+  }
+
+  if (hasAny("call", "hang out", "party", "social", "friend", "date", "people", "meet", "go out")) {
+    return {
+      label: "social dread",
+      guidance:
+        "Treat this as someone acting like ordinary social contact is an omen, performance review, or highly avoidable risk event.",
+    };
+  }
+
+  if (hasAny("clean", "laundry", "dish", "dishes", "cook", "dinner", "kitchen", "shower", "errand")) {
+    return {
+      label: "basic adult task inflation",
+      guidance:
+        "Treat this as someone turning one ordinary adult responsibility into a dramatic negotiation with destiny.",
+    };
+  }
+
+  if (hasAny("start", "begin", "finish", "work on", "task", "project", "assignment", "deadline")) {
+    return {
+      label: "general avoidance",
+      guidance:
+        "Treat this as someone stretching one ordinary task into a full theatrical event to avoid simply beginning.",
+    };
+  }
+
+  return {
+    label: "generic avoidance",
+    guidance:
+      "Find the most embarrassing underlying behavior in the input and roast that, not the literal wording itself.",
+  };
+}
+
 function behaviorGuideForMood(mood: Mood) {
   if (mood === "hype") {
     return `
@@ -84,12 +152,14 @@ Your job:
 - make it feel like a roast account or brutally honest best friend, not therapy
 - use specifics from the user's situation, not generic pep-talk filler
 - use the personal context if provided, especially their job title or work identity
-- use at least one concrete word or detail from the user's exact input
-- directly mention at least one real detail from the input or context, nearly verbatim
+- use at least one concrete real detail from the user's exact input or context
 - make it feel obviously about this person, not a generic procrastination template
 - prefer ridicule, wit, and playful exaggeration over explanation
 - if possible, include one nosy question or one shady observation
 - make the roast hinge on one sharp comparison, insult, or absurdly rude observation
+- interpret the situation like a human would instead of quoting the task back at them
+- identify the hidden behavior underneath the input: avoidance, excuses, overthinking, spiraling, melodrama, procrastination, etc.
+- turn the raw input into a cleaner observation; do not repeat the user's full wording back to them
 - do not be cruel, hateful, or hopeless
 - the funniest version is dry, deadpan, and cutting, not motivational
 `;
@@ -153,6 +223,10 @@ Rules:
 - avoid sounding kind, explanatory, or supportive on the front roast
 - avoid polite opener lines like "you're a..." followed by explanation; go for a harder punch
 - avoid bland job-summary lines that just restate the person's role or task
+- avoid quoting the user's raw input back to them unless it is only 1 to 3 words
+- do not repeat their exact sentence structure or paste their task into quotation marks
+- if the input is plain or casual, infer the more embarrassing underlying truth and roast that instead
+- prefer one sharp idea carried all the way through over two disconnected insults
 - if it reads like an observation instead of a roast, rewrite it sharper
 - if you cannot reference a real detail from the user, return a very short grounded line instead of inventing nonsense
 - no markdown
@@ -173,9 +247,10 @@ export function buildPrompt(
     mood === "hype"
       ? hypeVariationAngles
       : mood === "nice"
-        ? niceVariationAngles
+      ? niceVariationAngles
         : roastVariationAngles;
   const variation = variationPool[Math.abs(variationSeed ?? 0) % variationPool.length];
+  const situation = inferSituation(text, details);
   return `
 You are GuiltTrip, a tiny receipt printer that lovingly bullies people into doing things.
 
@@ -186,12 +261,21 @@ Previous printed front line to avoid repeating: ${previousMain || "none"}
 Mood: ${mood}
 Intensity: ${intensity}
 Variation target: ${variation}
+Situation type: ${situation.label}
+Situation steering: ${situation.guidance}
 
 Tone guide:
 - ${moodDirections[mood]}
 - ${intensityDirections[intensity]}
 
 ${behaviorGuideForMood(mood)}
+
+Interpretation guide:
+- First understand what the user actually means, not just what they literally typed.
+- Translate their input into the real behavior underneath it.
+- Example: "don't want to get out of bed because it's raining" should become something like "one cloudy morning and your ambition filed for leave", not a clunky restatement.
+- Example: "make dinner tonight" should become something like "you turned one basic adult task into a negotiation with destiny", not a quote of the task.
+- Use the situation steering above as the emotional frame for the joke.
 
 Return ONLY valid JSON in this exact shape:
 {"main":"...","best":"...","worst":"..."}
