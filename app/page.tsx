@@ -524,7 +524,6 @@ export default function Home() {
                       <div className="receipt-scroll">
                         <p className="receipt-title-thermal">Roast Ticket</p>
                         <p className="receipt-meta stamp">timestamp: {issuedAt}</p>
-                        <p className="receipt-block-title">roast</p>
                         <div className="receipt-lines">
                           {visibleRoastLines.map((line, index) => (
                             <p key={`${ticketNumber}-${index}`} className="receipt-line staggered">{line}</p>
@@ -589,17 +588,16 @@ export default function Home() {
                   </div>
                   )}
                 </div>
-              </div>
-            ) : null}
-
-            {visibleReceipt && !receiptMinimized ? (
-              <div className="receipt-actions">
-                <button type="button" className="secondary-action" onClick={redo}>
-                  Ow, again
-                </button>
-                <button type="button" className="share-story" onClick={saveReceipt}>
-                  Save
-                </button>
+                {!receiptMinimized ? (
+                  <div className="receipt-actions">
+                    <button type="button" className="receipt-action-button" onClick={redo}>
+                      Ow, again
+                    </button>
+                    <button type="button" className="receipt-action-button" onClick={saveReceipt}>
+                      Save
+                    </button>
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
