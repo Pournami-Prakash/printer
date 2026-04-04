@@ -257,8 +257,8 @@ const activeTheme = moodTheme[selectedMood];
           mood: selectedMood,
           intensity,
           memory: getMemory(),
-          variationSeed: Math.floor(Math.random() * 1000000),
           previousMain: previousMainOverride ?? visibleReceipt?.main ?? receipt?.main ?? '',
+          _hp: '',
         }),
       });
 

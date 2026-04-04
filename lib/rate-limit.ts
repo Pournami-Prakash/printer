@@ -1,6 +1,6 @@
 const bucket = new Map<string, number[]>();
 
-export function allowRequest(id: string, limit = 12, windowMs = 60000): boolean {
+export function allowRequest(id: string, limit = 10, windowMs = 60000): boolean {
   const now = Date.now();
   const arr = bucket.get(id) || [];
   const valid = arr.filter((t) => now - t < windowMs);

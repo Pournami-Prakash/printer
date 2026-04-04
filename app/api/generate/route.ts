@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { allowRequest } from "@/lib/rate-limit";
 import { buildPrompt } from "@/lib/prompts";
 import { generateReply } from "@/lib/llm";
+import { INTENSITIES, MOODS } from "@/lib/types";
 import type { Intensity, Mood } from "@/lib/types";
 
 function isMood(v: string): v is Mood {
-  return ["drama", "guilt", "hug", "doom", "goblin", "hype", "nice"].includes(v);
+  return (MOODS as readonly string[]).includes(v);
 }
 
 function isIntensity(v: string): v is Intensity {
-  return ["soft", "brutal", "unhinged"].includes(v);
+  return (INTENSITIES as readonly string[]).includes(v);
 }
 
 export async function POST(req: NextRequest) {
@@ -24,9 +25,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { text, details, memory, mood, intensity, variationSeed, previousMain } = await req.json();
+    const { text, details, memory, mood, intensity, previousMain, _hp } = await req.json();
+
+    // Honeypot — bots fill hidden fields, humans don't
+    if (_hp) {
+      return NextResponse.json({ error: "nope." }, { status: 400 });
+    }
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
+      return NextResponse.json(
+        { error: "type something real." },
+        { status: 400 }
+      );
+    }
+
+    // Reject inputs that are too long or contain no letters
+    if (text.length > 300) {
+      return NextResponse.json(
+        { error: "keep it shorter." },
+        { status: 400 }
+      );
+    }
+
+    if (!/[a-zA-Z]/.test(text)) {
       return NextResponse.json(
         { error: "type something real." },
         { status: 400 }
@@ -37,11 +58,6 @@ export async function POST(req: NextRequest) {
     const safeIntensity: Intensity = isIntensity(intensity) ? intensity : "brutal";
 
     const finalDetails = typeof details === "string" ? details : "";
-    const finalVariationSeed =
-      typeof variationSeed === "number" && Number.isFinite(variationSeed)
-        ? variationSeed
-        : Math.floor(Math.random() * 1000000);
-
     const finalPreviousMain = typeof previousMain === "string" ? previousMain : "";
 
     const prompt = buildPrompt(
@@ -50,7 +66,6 @@ export async function POST(req: NextRequest) {
       safeIntensity,
       memory,
       finalDetails,
-      finalVariationSeed,
       finalPreviousMain
     );
 
@@ -76,6 +91,38 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// Normalise leet-speak and spacing before checking
+function normaliseForSafety(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[1!]/g, "i")
+    .replace(/[3]/g, "e")
+    .replace(/[0]/g, "o")
+    .replace(/[4@]/g, "a")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const BLOCKED_PATTERNS = [
+  /\bsuicid/,
+  /\bself.?harm/,
+  /\bkill\s+yourself/,
+  /\bkys\b/,
+  /\brap(e|ed|ing)\b/,
+  /\bmolest/,
+  /\bpedophil/,
+  /\bchild.?abuse/,
+  /\bnigger\b/,
+  /\bnigga\b/,
+  /\bfaggot\b/,
+  /\bshoot\s+up\b/,
+];
+
+function isSafeOutput(result: { main: string; best: string; worst: string }) {
+  const combined = normaliseForSafety(`${result.main} ${result.best} ${result.worst}`);
+  return !BLOCKED_PATTERNS.some((pattern) => pattern.test(combined));
+}
+
 async function getBestReceiptReply(prompt: string, previousMain: string) {
   const providers: Array<"groq" | "llm7"> = process.env.GROQ_API_KEY
     ? ["groq", "llm7"]
@@ -86,6 +133,7 @@ async function getBestReceiptReply(prompt: string, previousMain: string) {
       const result = await generateReply({ prompt, provider });
 
       if (result.main.length < 20) continue;
+      if (!isSafeOutput(result)) continue;
       if (isTooSimilarToPrevious(result.main, previousMain)) continue;
 
       return result;

@@ -128,7 +128,6 @@ export function buildPrompt(
   intensity: Intensity,
   memory?: string,
   details?: string,
-  _variationSeed?: number,
   previousMain?: string
 ) {
   const role = details?.trim();
