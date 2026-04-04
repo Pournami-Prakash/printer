@@ -233,7 +233,6 @@ const activeTheme = moodTheme[selectedMood];
 
   async function revealReceipt(nextReceipt: ReceiptResponse) {
     setVisibleReceipt(null);
-    setReceiptSide('front');
     setReceiptMinimized(false);
     await new Promise((resolve) => setTimeout(resolve, 250));
     setVisibleReceipt(nextReceipt);
@@ -554,7 +553,6 @@ const activeTheme = moodTheme[selectedMood];
                       type="button"
                       className="receipt-reopen"
                       onClick={() => {
-                        setReceiptSide('front');
                         setReceiptMinimized(false);
                       }}
                     >
