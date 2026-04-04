@@ -100,7 +100,6 @@ export default function Home() {
   const [lastReceiptTap, setLastReceiptTap] = useState(0);
   const [jobPromptIndex, setJobPromptIndex] = useState(0);
   const [loadingLineIndex, setLoadingLineIndex] = useState(0);
-  const [visibleMainLineCount, setVisibleMainLineCount] = useState(0);
 
   useEffect(() => {
     setStreak(getStreak());
@@ -133,15 +132,7 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [loading, selectedMood]);
 
-  useEffect(() => {
-    if (!visibleReceipt) {
-      setVisibleMainLineCount(0);
-      return;
-    }
-    setVisibleMainLineCount(1);
-  }, [visibleReceipt]);
-
-  const activeTheme = moodTheme[selectedMood];
+const activeTheme = moodTheme[selectedMood];
   const activeMood = moods.find((mood) => mood.value === selectedMood) || moods[0];
   const printedMoodOption = moods.find((mood) => mood.value === printedMood) || activeMood;
   const activeJobPrompt = jobQuestionPrompts[jobPromptIndex];
@@ -177,6 +168,7 @@ export default function Home() {
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: finalText,
           details,

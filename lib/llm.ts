@@ -94,7 +94,7 @@ function clipMain(value: string) {
     .map((part) => part.trim())
     .filter(Boolean)
     .slice(0, 1);
-  return sentences.join(" ").replace(/·/g, ".").slice(0, 180).trim();
+  return sentences.join(" ").replace(/·/g, ".").slice(0, 160).trim();
 }
 
 function clipOutcome(value: string) {
@@ -104,5 +104,5 @@ function clipOutcome(value: string) {
     .map((part) => part.trim())
     .filter(Boolean)
     .slice(0, 2);
-  return sentences.join(" ").slice(0, 90).trim();
+  return sentences.join(" ").slice(0, 80).trim();
 }
