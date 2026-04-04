@@ -29,9 +29,9 @@ const moods: MoodOption[] = [
     label: 'Drama\nQueen', value: 'drama', icon: 'megaphone',
     goblinName: 'Gossip Goblin', goblinLabel: 'gossip', goblinSpeech: 'what is your job title, celebrity?',
     promptSeeds: [
-      'Roast me like a suspicious coworker with excellent eyeliner.',
-      'File a formal complaint about my behaviour.',
-      'What scandal am I creating by doing nothing?',
+      "haven't texted back in three days",
+      "skipped the gym again this morning",
+      "said yes to something I'm now avoiding",
     ],
     taskLabel: 'what scandal are we avoiding?', receiptWorld: 'scandal bulletin',
     bestLabel: 'if you behave', worstLabel: 'if you embarrass us',
@@ -42,9 +42,9 @@ const moods: MoodOption[] = [
     label: 'Guilt\nTrip', value: 'guilt', icon: 'mug',
     goblinName: 'Landlord Goblin', goblinLabel: 'landlord', goblinSpeech: 'job title? quickly.',
     promptSeeds: [
-      'Ask if my actual profession is avoiding the obvious.',
-      'What adult task am I billing to next month?',
-      'Is my excuse a violation of my rental agreement?',
+      "haven't opened my emails in two days",
+      "keep saying I'll start tomorrow",
+      "owe someone a very overdue reply",
     ],
     taskLabel: 'what bill is emotionally overdue?', receiptWorld: 'rent notice',
     bestLabel: 'paid on time timeline', worstLabel: 'late fee timeline',
@@ -55,9 +55,9 @@ const moods: MoodOption[] = [
     label: 'Soft\nHug', value: 'hug', icon: 'heart',
     goblinName: 'Sweetheart Goblin', goblinLabel: 'sweetie', goblinSpeech: 'baby, what do you do for work?',
     promptSeeds: [
-      'Be sweet but drag me for making one task dramatic.',
-      'Tell me what I\'m avoiding and why it\'s okay.',
-      'What tiny mountain are we crying about together?',
+      "can't get off the couch today",
+      "feeling stuck and don't know why",
+      "everything feels too big right now",
     ],
     taskLabel: 'what tiny mountain are we crying over?', receiptWorld: 'concern note',
     bestLabel: 'if you love yourself', worstLabel: 'if you keep spiraling',
@@ -68,9 +68,9 @@ const moods: MoodOption[] = [
     label: 'Doom\nForecast', value: 'doom', icon: 'orb',
     goblinName: 'Oracle Goblin', goblinLabel: 'balcony witch', goblinSpeech: 'state your profession before the omen.',
     promptSeeds: [
-      'Predict my downfall if I keep dodging this task.',
-      'What does the oracle see if I do nothing today?',
-      'Forecast the consequences of doing absolutely nothing.',
+      "haven't started the thing I promised myself",
+      "ignoring a bill that keeps growing",
+      "three unopened emails from my manager",
     ],
     taskLabel: 'which omen are we ignoring?', receiptWorld: 'omen report',
     bestLabel: 'lucky timeline', worstLabel: 'clown timeline',
@@ -81,9 +81,9 @@ const moods: MoodOption[] = [
     label: 'Goblin\nGremlin', value: 'goblin', icon: 'spark',
     goblinName: 'Chaos Goblin', goblinLabel: 'goblin', goblinSpeech: 'what is your alleged profession?',
     promptSeeds: [
-      'Roast me like my job title is a rumor.',
-      'Give me a goblin incident report on my behaviour.',
-      'What do the neighbourhood cats know about me?',
+      "my room is a complete disaster",
+      "ate cereal for dinner again",
+      "doomscrolling instead of sleeping",
     ],
     taskLabel: 'what mess needs goblin intervention?', receiptWorld: 'incident report',
     bestLabel: 'if you act right', worstLabel: 'if you stay weird',
@@ -94,9 +94,9 @@ const moods: MoodOption[] = [
     label: 'Hype\nGoblin', value: 'hype', icon: 'star',
     goblinName: 'Hype Goblin', goblinLabel: 'publicist', goblinSpeech: 'what dazzling profession are we claiming today?',
     promptSeeds: [
-      'Hype me up like success is already waiting in the parking lot.',
-      'Announce my comeback before I\'ve even started.',
-      'Treat this like the moment everything changes.',
+      "too scared to send the application",
+      "keep putting off the big project",
+      "ready to make a change but frozen",
     ],
     taskLabel: 'what move are we making next?', receiptWorld: 'star memo',
     bestLabel: 'spotlight timeline', worstLabel: 'missed-the-moment timeline',
@@ -107,9 +107,9 @@ const moods: MoodOption[] = [
     label: 'Nice\nGoblin', value: 'nice', icon: 'cloud',
     goblinName: 'Nice Goblin', goblinLabel: 'helper', goblinSpeech: 'what do you do, sweet pea?',
     promptSeeds: [
-      'Be kind and gently push me to start.',
-      'Tell me the smallest possible next step.',
-      'Remind me it doesn\'t have to be perfect.',
+      "overwhelmed and don't know where to start",
+      "haven't been kind to myself lately",
+      "struggling more than I'm letting on",
     ],
     taskLabel: 'what would feel better if we handled it?', receiptWorld: 'support note',
     bestLabel: 'gentle win timeline', worstLabel: 'tired tomorrow timeline',
@@ -586,7 +586,6 @@ const activeTheme = moodTheme[selectedMood];
                             <p key={`${ticketNumber}-${index}`} className="receipt-line staggered">{line}</p>
                           ))}
                         </div>
-                        <div className="receipt-barcode" aria-hidden="true" />
                         <div className="receipt-dash" />
                         <div className="receipt-cases stacked">
                           <div className="receipt-case best">
@@ -598,6 +597,7 @@ const activeTheme = moodTheme[selectedMood];
                             <p className="receipt-case-text">{visibleReceipt.worst}</p>
                           </div>
                         </div>
+                        <div className="receipt-barcode" aria-hidden="true" />
                       </div>
 
                       <div className="receipt-dash" />
