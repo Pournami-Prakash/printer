@@ -15,7 +15,7 @@ type MoodOption = {
   goblinName: string;
   goblinLabel: string;
   goblinSpeech: string;
-  promptSeed: string;
+  promptSeeds: string[];
   taskLabel: string;
   receiptWorld: string;
   bestLabel: string;
@@ -25,13 +25,97 @@ type MoodOption = {
 };
 
 const moods: MoodOption[] = [
-  { label: 'Drama\nQueen', value: 'drama', icon: 'megaphone', goblinName: 'Gossip Goblin', goblinLabel: 'gossip', goblinSpeech: 'what is your job title, celebrity?', promptSeed: 'Roast me like a suspicious coworker with excellent eyeliner.', taskLabel: 'what scandal are we avoiding?', receiptWorld: 'scandal bulletin', bestLabel: 'if you behave', worstLabel: 'if you embarrass us', footerLine: 'witnessed by the whole building', statusLines: ['checking the gossip chain...', 'powdering nose, judging...', 'pulling your scandal file...'] },
-  { label: 'Guilt\nTrip', value: 'guilt', icon: 'mug', goblinName: 'Landlord Goblin', goblinLabel: 'landlord', goblinSpeech: 'job title? quickly.', promptSeed: 'Ask if my actual profession is avoiding the obvious.', taskLabel: 'what bill is emotionally overdue?', receiptWorld: 'rent notice', bestLabel: 'paid on time timeline', worstLabel: 'late fee timeline', footerLine: 'filed under avoidable behavior', statusLines: ['reviewing your excuses...', 'checking your payment history...', 'printing the disappointment...'] },
-  { label: 'Soft\nHug', value: 'hug', icon: 'heart', goblinName: 'Sweetheart Goblin', goblinLabel: 'sweetie', goblinSpeech: 'baby, what do you do for work?', promptSeed: 'Be sweet but drag me for making one task dramatic.', taskLabel: 'what tiny mountain are we crying over?', receiptWorld: 'concern note', bestLabel: 'if you love yourself', worstLabel: 'if you keep spiraling', footerLine: 'signed by a friend with standards', statusLines: ['warming up the forehead kiss...', 'finding the loving drag...', 'packing concern with sass...'] },
-  { label: 'Doom\nForecast', value: 'doom', icon: 'orb', goblinName: 'Oracle Goblin', goblinLabel: 'balcony witch', goblinSpeech: 'state your profession before the omen.', promptSeed: 'Predict my downfall if I keep dodging this task.', taskLabel: 'which omen are we ignoring?', receiptWorld: 'omen report', bestLabel: 'lucky timeline', worstLabel: 'clown timeline', footerLine: 'approved by the balcony oracle', statusLines: ['consulting the omen...', 'reading the cursed timeline...', 'forecasting your nonsense...'] },
-  { label: 'Goblin\nGremlin', value: 'goblin', icon: 'spark', goblinName: 'Chaos Goblin', goblinLabel: 'goblin', goblinSpeech: 'what is your alleged profession?', promptSeed: 'Roast me like my job title is a rumor.', taskLabel: 'what mess needs goblin intervention?', receiptWorld: 'incident report', bestLabel: 'if you act right', worstLabel: 'if you stay weird', footerLine: 'reviewed by neighbourhood cats', statusLines: ['rattling through your chaos...', 'collecting goblin evidence...', 'filing a tiny incident report...'] },
-  { label: 'Hype\nGoblin', value: 'hype', icon: 'star', goblinName: 'Hype Goblin', goblinLabel: 'publicist', goblinSpeech: 'what dazzling profession are we claiming today?', promptSeed: 'Hype me up like success is already waiting in the parking lot.', taskLabel: 'what move are we making next?', receiptWorld: 'star memo', bestLabel: 'spotlight timeline', worstLabel: 'missed-the-moment timeline', footerLine: 'approved by your imaginary fan club', statusLines: ['ironing your victory speech...', 'warming up the applause...', 'printing your main character memo...'] },
-  { label: 'Nice\nGoblin', value: 'nice', icon: 'cloud', goblinName: 'Nice Goblin', goblinLabel: 'helper', goblinSpeech: 'what do you do, sweet pea?', promptSeed: 'Be kind, reassuring, and gently push me to start.', taskLabel: 'what would feel better if we handled it?', receiptWorld: 'support note', bestLabel: 'gentle win timeline', worstLabel: 'tired tomorrow timeline', footerLine: 'signed by a goblin with good intentions', statusLines: ['folding a tiny encouragement note...', 'looking for the gentle nudge...', 'printing something nicer than your inner voice...'] },
+  {
+    label: 'Drama\nQueen', value: 'drama', icon: 'megaphone',
+    goblinName: 'Gossip Goblin', goblinLabel: 'gossip', goblinSpeech: 'what is your job title, celebrity?',
+    promptSeeds: [
+      'Roast me like a suspicious coworker with excellent eyeliner.',
+      'File a formal complaint about my behaviour.',
+      'What scandal am I creating by doing nothing?',
+    ],
+    taskLabel: 'what scandal are we avoiding?', receiptWorld: 'scandal bulletin',
+    bestLabel: 'if you behave', worstLabel: 'if you embarrass us',
+    footerLine: 'witnessed by the whole building',
+    statusLines: ['checking the gossip chain...', 'powdering nose, judging...', 'pulling your scandal file...'],
+  },
+  {
+    label: 'Guilt\nTrip', value: 'guilt', icon: 'mug',
+    goblinName: 'Landlord Goblin', goblinLabel: 'landlord', goblinSpeech: 'job title? quickly.',
+    promptSeeds: [
+      'Ask if my actual profession is avoiding the obvious.',
+      'What adult task am I billing to next month?',
+      'Is my excuse a violation of my rental agreement?',
+    ],
+    taskLabel: 'what bill is emotionally overdue?', receiptWorld: 'rent notice',
+    bestLabel: 'paid on time timeline', worstLabel: 'late fee timeline',
+    footerLine: 'filed under avoidable behavior',
+    statusLines: ['reviewing your excuses...', 'checking your payment history...', 'printing the disappointment...'],
+  },
+  {
+    label: 'Soft\nHug', value: 'hug', icon: 'heart',
+    goblinName: 'Sweetheart Goblin', goblinLabel: 'sweetie', goblinSpeech: 'baby, what do you do for work?',
+    promptSeeds: [
+      'Be sweet but drag me for making one task dramatic.',
+      'Tell me what I\'m avoiding and why it\'s okay.',
+      'What tiny mountain are we crying about together?',
+    ],
+    taskLabel: 'what tiny mountain are we crying over?', receiptWorld: 'concern note',
+    bestLabel: 'if you love yourself', worstLabel: 'if you keep spiraling',
+    footerLine: 'signed by a friend with standards',
+    statusLines: ['warming up the forehead kiss...', 'finding the loving drag...', 'packing concern with sass...'],
+  },
+  {
+    label: 'Doom\nForecast', value: 'doom', icon: 'orb',
+    goblinName: 'Oracle Goblin', goblinLabel: 'balcony witch', goblinSpeech: 'state your profession before the omen.',
+    promptSeeds: [
+      'Predict my downfall if I keep dodging this task.',
+      'What does the oracle see if I do nothing today?',
+      'Forecast the consequences of doing absolutely nothing.',
+    ],
+    taskLabel: 'which omen are we ignoring?', receiptWorld: 'omen report',
+    bestLabel: 'lucky timeline', worstLabel: 'clown timeline',
+    footerLine: 'approved by the balcony oracle',
+    statusLines: ['consulting the omen...', 'reading the cursed timeline...', 'forecasting your nonsense...'],
+  },
+  {
+    label: 'Goblin\nGremlin', value: 'goblin', icon: 'spark',
+    goblinName: 'Chaos Goblin', goblinLabel: 'goblin', goblinSpeech: 'what is your alleged profession?',
+    promptSeeds: [
+      'Roast me like my job title is a rumor.',
+      'Give me a goblin incident report on my behaviour.',
+      'What do the neighbourhood cats know about me?',
+    ],
+    taskLabel: 'what mess needs goblin intervention?', receiptWorld: 'incident report',
+    bestLabel: 'if you act right', worstLabel: 'if you stay weird',
+    footerLine: 'reviewed by neighbourhood cats',
+    statusLines: ['rattling through your chaos...', 'collecting goblin evidence...', 'filing a tiny incident report...'],
+  },
+  {
+    label: 'Hype\nGoblin', value: 'hype', icon: 'star',
+    goblinName: 'Hype Goblin', goblinLabel: 'publicist', goblinSpeech: 'what dazzling profession are we claiming today?',
+    promptSeeds: [
+      'Hype me up like success is already waiting in the parking lot.',
+      'Announce my comeback before I\'ve even started.',
+      'Treat this like the moment everything changes.',
+    ],
+    taskLabel: 'what move are we making next?', receiptWorld: 'star memo',
+    bestLabel: 'spotlight timeline', worstLabel: 'missed-the-moment timeline',
+    footerLine: 'approved by your imaginary fan club',
+    statusLines: ['ironing your victory speech...', 'warming up the applause...', 'printing your main character memo...'],
+  },
+  {
+    label: 'Nice\nGoblin', value: 'nice', icon: 'cloud',
+    goblinName: 'Nice Goblin', goblinLabel: 'helper', goblinSpeech: 'what do you do, sweet pea?',
+    promptSeeds: [
+      'Be kind and gently push me to start.',
+      'Tell me the smallest possible next step.',
+      'Remind me it doesn\'t have to be perfect.',
+    ],
+    taskLabel: 'what would feel better if we handled it?', receiptWorld: 'support note',
+    bestLabel: 'gentle win timeline', worstLabel: 'tired tomorrow timeline',
+    footerLine: 'signed by a goblin with good intentions',
+    statusLines: ['folding a tiny encouragement note...', 'looking for the gentle nudge...', 'printing something nicer than your inner voice...'],
+  },
 ];
 
 const intensitySteps: { value: Intensity; label: string }[] = [
@@ -84,7 +168,6 @@ export default function Home() {
   const [flowUnlocked, setFlowUnlocked] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptResponse | null>(null);
   const [visibleReceipt, setVisibleReceipt] = useState<ReceiptResponse | null>(null);
-  const [receiptSide, setReceiptSide] = useState<'front' | 'back'>('front');
   const [receiptMinimized, setReceiptMinimized] = useState(false);
   const [loading, setLoading] = useState(false);
   const [streak, setStreak] = useState(1);
@@ -219,9 +302,7 @@ const activeTheme = moodTheme[selectedMood];
     const node = document.getElementById('receipt');
     if (!node) return;
 
-    const liveFace = node.querySelector(
-      receiptSide === 'front' ? '.receipt-face-panel.front' : '.receipt-face-panel.back'
-    ) as HTMLElement | null;
+    const liveFace = node.querySelector('.receipt-face-panel') as HTMLElement | null;
     if (!liveFace) return;
 
     await document.fonts.ready;
@@ -291,7 +372,6 @@ const activeTheme = moodTheme[selectedMood];
     const previousMain = visibleReceipt?.main || receipt?.main || '';
     setReceipt(null);
     setVisibleReceipt(null);
-    setReceiptSide('front');
     setReceiptMinimized(false);
     window.setTimeout(() => {
       document.querySelector('.printer-shell')?.scrollIntoView({
@@ -304,7 +384,6 @@ const activeTheme = moodTheme[selectedMood];
 
   function tearReceipt() {
     setVisibleReceipt(null);
-    setReceiptSide('front');
     setReceiptMinimized(false);
   }
 
@@ -418,20 +497,32 @@ const activeTheme = moodTheme[selectedMood];
                           <button
                             type="button"
                             className="secondary-action"
-                            onClick={() => generate(activeMood.promptSeed)}
+                            onClick={() => {
+                              const seed = activeMood.promptSeeds[Math.floor(Math.random() * activeMood.promptSeeds.length)];
+                              generate(seed);
+                            }}
                           >
                             Surprise
                           </button>
                         </div>
 
                         <div className="suggestion-row">
-                          <button
-                            type="button"
-                            className={`suggestion-chip${loading ? ' suggestion-chip-live' : ''}`}
-                            onClick={() => setText(activeMood.promptSeed)}
-                          >
-                            {loading ? activeMood.statusLines[loadingLineIndex] : activeMood.promptSeed}
-                          </button>
+                          {loading ? (
+                            <div className="suggestion-chip suggestion-chip-live">
+                              {activeMood.statusLines[loadingLineIndex]}
+                            </div>
+                          ) : (
+                            activeMood.promptSeeds.map((seed) => (
+                              <button
+                                key={seed}
+                                type="button"
+                                className="suggestion-chip"
+                                onClick={() => setText(seed)}
+                              >
+                                {seed}
+                              </button>
+                            ))
+                          )}
                         </div>
                       </div>
 
@@ -471,31 +562,22 @@ const activeTheme = moodTheme[selectedMood];
                     </button>
                   ) : (
                   <div
-                    className={`receipt-card${receiptSide === 'back' ? ' flipped' : ''}`}
+                    className="receipt-card"
                     onClick={handleReceiptTap}
                   >
-                    <section className="receipt-face-panel front">
+                    <section className="receipt-face-panel">
                       <div className="receipt-cutline">
                         <span>double tap to tear</span>
-                        <div className="receipt-cutline-actions">
-                          <button
-                            type="button"
-                            className="receipt-flip"
-                            onClick={() => setReceiptSide('back')}
-                          >
-                            see back
-                          </button>
-                          <button
-                            type="button"
-                            className="receipt-flip"
-                            onClick={() => {
-                              setReceiptSide('front');
-                              setReceiptMinimized(true);
-                            }}
-                          >
-                            minimize
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          className="receipt-flip"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReceiptMinimized(true);
+                          }}
+                        >
+                          minimize
+                        </button>
                       </div>
 
                       <div className="receipt-scroll">
@@ -507,42 +589,6 @@ const activeTheme = moodTheme[selectedMood];
                           ))}
                         </div>
                         <div className="receipt-barcode" aria-hidden="true" />
-                      </div>
-
-                      <div className="receipt-dash" />
-                      <div className="receipt-footer">
-                        <span>ticket #{ticketNumber}</span>
-                        <span>{printedMoodOption.footerLine}</span>
-                      </div>
-                    </section>
-
-                    <section className="receipt-face-panel back">
-                      <div className="receipt-cutline">
-                        <span>double tap to tear</span>
-                        <div className="receipt-cutline-actions">
-                          <button
-                            type="button"
-                            className="receipt-flip"
-                            onClick={() => setReceiptSide('front')}
-                          >
-                            see front
-                          </button>
-                          <button
-                            type="button"
-                            className="receipt-flip"
-                            onClick={() => {
-                              setReceiptSide('front');
-                              setReceiptMinimized(true);
-                            }}
-                          >
-                            minimize
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="receipt-scroll">
-                        <p className="receipt-title-thermal small">Outcome Slip</p>
-                        <p className="receipt-meta stamp">{printedMoodOption.receiptWorld}</p>
                         <div className="receipt-dash" />
                         <div className="receipt-cases stacked">
                           <div className="receipt-case best">
@@ -559,7 +605,7 @@ const activeTheme = moodTheme[selectedMood];
                       <div className="receipt-dash" />
                       <div className="receipt-footer">
                         <span>ticket #{ticketNumber}</span>
-                        <span>turn me over</span>
+                        <span>{printedMoodOption.footerLine}</span>
                       </div>
                     </section>
                   </div>

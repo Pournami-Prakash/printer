@@ -693,84 +693,92 @@ button {
   border-color: #3a6f8e;
 }
 
+/* ── DRAMA: wide surprised eyes, round O mouth, no blush ── */
+.goblin-avatar.mood-drama .goblin-horn { background: #744532; }
+.goblin-avatar.mood-drama .goblin-horn.left { top: -8px; left: 5px; width: 7px; height: 8px; }
+.goblin-avatar.mood-drama .goblin-horn.right { top: -8px; right: 5px; width: 7px; height: 8px; }
 .goblin-avatar.mood-drama .goblin-eye.left,
 .goblin-avatar.mood-drama .goblin-eye.right {
-  top: 16px;
+  width: 8px; height: 8px; top: 13px; background: #744532;
 }
-
+.goblin-avatar.mood-drama .goblin-blush { display: none; }
 .goblin-avatar.mood-drama .goblin-mouth {
-  width: 16px;
-  height: 3px;
-  bottom: 9px;
+  width: 9px; height: 9px; border-radius: 50%; bottom: 8px; background: #744532;
 }
 
-.goblin-avatar.mood-guilt .goblin-eye.left {
-  left: 11px;
-}
-
+/* ── GUILT: squinting eyes, thin disapproving frown ── */
+.goblin-avatar.mood-guilt .goblin-horn { background: #7a5a2b; }
+.goblin-avatar.mood-guilt .goblin-eye.left,
 .goblin-avatar.mood-guilt .goblin-eye.right {
-  right: 11px;
+  height: 3px; top: 19px; background: #7a5a2b;
 }
-
+.goblin-avatar.mood-guilt .goblin-eye.left { left: 14px; }
+.goblin-avatar.mood-guilt .goblin-eye.right { right: 14px; }
+.goblin-avatar.mood-guilt .goblin-blush { display: none; }
 .goblin-avatar.mood-guilt .goblin-mouth {
-  width: 12px;
-  height: 3px;
-  bottom: 11px;
+  width: 14px; height: 2px; bottom: 11px;
+  border-radius: 999px 999px 0 0; background: #7a5a2b;
 }
 
-.goblin-avatar.mood-hug .goblin-blush {
-  background: #ffb3bf;
+/* ── HUG: warm droopy eyes, wide smile, pink blush ── */
+.goblin-avatar.mood-hug .goblin-horn { background: #2f6a5a; }
+.goblin-avatar.mood-hug .goblin-eye.left,
+.goblin-avatar.mood-hug .goblin-eye.right {
+  height: 5px; top: 20px; background: #2f6a5a;
 }
-
+.goblin-avatar.mood-hug .goblin-blush { background: #ff99b0; width: 10px; height: 5px; top: 27px; }
 .goblin-avatar.mood-hug .goblin-mouth {
-  width: 12px;
-  height: 3px;
-  border-radius: 0 0 999px 999px;
-  bottom: 9px;
+  width: 18px; height: 4px; bottom: 9px;
+  border-radius: 0 0 999px 999px; background: #2f6a5a;
 }
 
+/* ── DOOM: tall narrow horns, slit eyes, tiny frown ── */
+.goblin-avatar.mood-doom .goblin-horn { background: #41509a; }
+.goblin-avatar.mood-doom .goblin-horn.left { top: -10px; width: 5px; height: 10px; }
+.goblin-avatar.mood-doom .goblin-horn.right { top: -10px; width: 5px; height: 10px; }
 .goblin-avatar.mood-doom .goblin-eye.left,
 .goblin-avatar.mood-doom .goblin-eye.right {
-  top: 17px;
+  width: 9px; height: 2px; top: 21px; background: #41509a;
 }
-
+.goblin-avatar.mood-doom .goblin-blush { display: none; }
 .goblin-avatar.mood-doom .goblin-mouth {
-  width: 10px;
-  height: 3px;
-  bottom: 12px;
+  width: 8px; height: 2px; bottom: 12px;
+  border-radius: 999px 999px 0 0; background: #41509a;
 }
 
+/* ── GOBLIN: chaotic asymmetric eyes, big toothy mouth ── */
+.goblin-avatar.mood-goblin .goblin-horn { background: #2c5b2f; }
+.goblin-avatar.mood-goblin .goblin-horn.left { top: -9px; width: 8px; height: 9px; }
+.goblin-avatar.mood-goblin .goblin-horn.right { top: -7px; width: 6px; height: 7px; right: 8px; }
+.goblin-avatar.mood-goblin .goblin-eye.left { width: 8px; height: 8px; top: 14px; background: #2c5b2f; }
+.goblin-avatar.mood-goblin .goblin-eye.right { width: 5px; height: 5px; top: 18px; background: #2c5b2f; }
+.goblin-avatar.mood-goblin .goblin-blush { display: none; }
 .goblin-avatar.mood-goblin .goblin-mouth {
-  width: 16px;
-  height: 5px;
-  bottom: 8px;
+  width: 22px; height: 6px; bottom: 7px; background: #2c5b2f;
 }
 
-.goblin-avatar.mood-hype .goblin-blush {
-  background: #ffd2a8;
+/* ── HYPE: biggest eyes, huge grin, bright blush ── */
+.goblin-avatar.mood-hype .goblin-horn { background: #8b4b34; }
+.goblin-avatar.mood-hype .goblin-eye.left,
+.goblin-avatar.mood-hype .goblin-eye.right {
+  width: 8px; height: 8px; top: 12px; background: #8b4b34;
 }
-
+.goblin-avatar.mood-hype .goblin-blush { background: #ffb38c; width: 10px; height: 5px; top: 25px; }
 .goblin-avatar.mood-hype .goblin-mouth {
-  width: 14px;
-  height: 4px;
-  bottom: 8px;
-  border-radius: 999px 999px 0 0;
+  width: 22px; height: 5px; bottom: 7px;
+  border-radius: 0 0 999px 999px; background: #8b4b34;
 }
 
+/* ── NICE: soft eyes, gentle small smile, muted blush ── */
+.goblin-avatar.mood-nice .goblin-horn { background: #3a6f8e; }
 .goblin-avatar.mood-nice .goblin-eye.left,
 .goblin-avatar.mood-nice .goblin-eye.right {
-  top: 17px;
+  height: 5px; top: 19px; background: #3a6f8e;
 }
-
-.goblin-avatar.mood-nice .goblin-blush {
-  background: #c8efff;
-}
-
+.goblin-avatar.mood-nice .goblin-blush { background: #b8e4ff; width: 9px; height: 4px; top: 27px; }
 .goblin-avatar.mood-nice .goblin-mouth {
-  width: 12px;
-  height: 3px;
-  bottom: 9px;
-  border-radius: 0 0 999px 999px;
+  width: 11px; height: 3px; bottom: 11px;
+  border-radius: 0 0 999px 999px; background: #3a6f8e;
 }
 
 .goblin-horn,
@@ -1231,18 +1239,28 @@ textarea:focus-visible {
 }
 
 .suggestion-row {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .suggestion-chip {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   background: linear-gradient(180deg, #dde3e8, #c9d0d7);
   border: 3px solid #4b545c;
   border-radius: 10px;
-  padding: 9px 11px;
-  box-shadow: 0 5px 0 rgba(78, 91, 96, 0.45);
-  font-size: 0.76rem;
-  line-height: 1.15;
+  padding: 7px 10px;
+  box-shadow: 0 4px 0 rgba(78, 91, 96, 0.45);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.suggestion-chip-live {
+  flex: 1 1 100%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--theme-printer) 68%, white), #dbe7ef);
+  text-align: center;
 }
 
 .suggestion-chip-live {
