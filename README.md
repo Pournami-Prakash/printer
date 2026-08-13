@@ -1,57 +1,38 @@
 # GuiltTrip
 
-### The tiny printer that keeps receipts for your excuses.
+> A tiny printer that keeps receipts for your excuses.
 
-You tell it what you have been avoiding.
+Confess the thing you have been avoiding. Somewhere inside the machine, a goblin reviews the evidence.
 
-The printer hums. A goblin checks the evidence. Then, with all the warmth of a concerned friend and the accuracy of an overdue invoice, it prints the truth.
+Out slides one painfully specific verdict, two possible futures, and the uncomfortable feeling that a piece of thermal paper understands you.
 
-Not a productivity lecture. Not another inspirational quote. Just one painfully specific line, two possible futures, and a small piece of thermal-paper accountability.
+## Choose your damage
 
-## Pick your witness
-
-Every problem deserves the right kind of intervention.
-
-- **Gossip Goblin** turns your avoidance into breaking neighbourhood news.
+- **Gossip Goblin** turns avoidance into breaking neighbourhood news.
 - **Landlord Goblin** itemizes the emotional late fees.
 - **Sweetheart Goblin** offers a hug, then tells the truth anyway.
 - **Oracle Goblin** calmly predicts the cursed timeline ahead.
 - **Chaos Goblin** meets your mess on its own level.
 - **Hype Goblin** announces your comeback before you believe in it.
-- **Nice Goblin** gives you the gentler nudge your inner voice forgot.
+- **Nice Goblin** gives you the nudge your inner voice forgot.
 
-Choose how hard the truth should land—**Soft**, **Brutal**, or **Unhinged**—and let the machine do the rest.
+Then decide how hard the truth should land: **Soft**, **Brutal**, or **Unhinged**.
 
-## What comes out
+## The evidence is itemized
 
-Each visit becomes a numbered roast ticket containing:
+Every confession becomes a numbered roast ticket shaped by your situation and profession. It shows the timeline where you act, the timeline where the excuse wins, and a verdict you can save as an image for future legal proceedings—or the group chat.
 
-- a personalized verdict shaped by your situation and profession;
-- the best timeline, if you finally do the thing;
-- the worst timeline, if the excuse wins again;
-- a receipt you can save as an image and keep, share, or quietly reconsider.
+Returning visitors get a local streak, a little continuity, and fresh responses that avoid simply repeating the last ticket. Memory stays in the browser.
 
-The printer remembers the last thing you confessed, notices returning visitors through a local streak, and can produce a fresh verdict without simply repeating itself. Its memory stays in the browser.
+## Under the plastic shell
 
-## Why this exists
+GuiltTrip is a mobile-first Next.js experience built with React, TypeScript, Framer Motion, and `html-to-image`. LLM7 provides no-key generation, with Groq available as an optional provider and PostHog remaining dormant unless configured.
 
-Most advice arrives dressed as a checklist. GuiltTrip arrives as a character.
+The response pipeline preserves each goblin's voice while enforcing compact output, filtering unsafe language, and reducing repetition. The public API adds bounded input validation, bot detection, provider timeouts, and shared Upstash rate limiting.
 
-It was built around a small idea: sometimes the distance between avoidance and action is not more information. Sometimes it is being seen—specifically, playfully, and just dramatically enough to make the truth memorable.
+## Important paperwork
 
-The result sits somewhere between a fortune teller, a best friend, and the strange little receipt machine at the back of a convenience store.
-
-## Behind the paper
-
-GuiltTrip is a mobile-first experience built with Next.js, React, TypeScript, Framer Motion, and `html-to-image`.
-
-The response pipeline gives each goblin a distinct voice, adapts it across three intensity levels, and returns a compact verdict with best- and worst-case timelines. Responses are length-limited, checked for unsafe language, and compared with the previous ticket to reduce repetition. Requests also pass through input validation, a bot honeypot, and lightweight rate limiting.
-
-The app can use LLM7 as its no-key response provider or Groq when a key is available. Optional PostHog analytics remain inactive unless configured.
-
-## The fine print
-
-GuiltTrip is playful reflection, not professional medical, mental-health, legal, or financial advice. The goblins are confident; that does not make them licensed.
+GuiltTrip is playful reflection—not medical, mental-health, legal, or financial advice. The goblins are confident. They are not licensed.
 
 ---
 
