@@ -156,6 +156,22 @@ function nextIssuedAt() {
   });
 }
 
+function isReceiptResponse(value: unknown): value is ReceiptResponse {
+  if (typeof value !== 'object' || value === null) return false;
+  const receipt = value as Record<string, unknown>;
+  return (
+    typeof receipt.main === 'string' &&
+    typeof receipt.best === 'string' &&
+    typeof receipt.worst === 'string'
+  );
+}
+
+function getApiError(value: unknown) {
+  if (typeof value !== 'object' || value === null) return null;
+  const error = (value as Record<string, unknown>).error;
+  return typeof error === 'string' ? error : null;
+}
+
 function shiftMood(current: Mood, direction: 1 | -1) {
   const index = moods.findIndex((mood) => mood.value === current);
   const nextIndex = (index + direction + moods.length) % moods.length;
@@ -170,25 +186,26 @@ export default function Home() {
   const [visibleReceipt, setVisibleReceipt] = useState<ReceiptResponse | null>(null);
   const [receiptMinimized, setReceiptMinimized] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generationError, setGenerationError] = useState('');
   const [streak, setStreak] = useState(1);
   const [selectedMood, setSelectedMood] = useState<Mood>('guilt');
   const [moodTouched, setMoodTouched] = useState(false);
   const [intensity, setIntensity] = useState<Intensity>('brutal');
   const [ticketNumber, setTicketNumber] = useState('0000');
   const [issuedAt, setIssuedAt] = useState('--');
-  const [printedTask, setPrintedTask] = useState('');
-  const [printedContext, setPrintedContext] = useState('');
   const [printedMood, setPrintedMood] = useState<Mood>('guilt');
-  const [printedIntensity, setPrintedIntensity] = useState<Intensity>('brutal');
   const [lastReceiptTap, setLastReceiptTap] = useState(0);
   const [jobPromptIndex, setJobPromptIndex] = useState(0);
   const [loadingLineIndex, setLoadingLineIndex] = useState(0);
 
   useEffect(() => {
-    setStreak(getStreak());
-    setTicketNumber(nextTicketNumber());
-    setIssuedAt(nextIssuedAt());
-    setJobPromptIndex(Math.floor(Math.random() * jobQuestionPrompts.length));
+    const frame = window.requestAnimationFrame(() => {
+      setStreak(getStreak());
+      setTicketNumber(nextTicketNumber());
+      setIssuedAt(nextIssuedAt());
+      setJobPromptIndex(Math.floor(Math.random() * jobQuestionPrompts.length));
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -204,10 +221,7 @@ export default function Home() {
   }, [visibleReceipt]);
 
   useEffect(() => {
-    if (!loading) {
-      setLoadingLineIndex(0);
-      return;
-    }
+    if (!loading) return;
     const lines = (moods.find((mood) => mood.value === selectedMood) || moods[0]).statusLines;
     const timer = window.setInterval(() => {
       setLoadingLineIndex((index) => (index + 1) % lines.length);
@@ -245,6 +259,8 @@ const activeTheme = moodTheme[selectedMood];
     const details = followUpAnswer.trim();
     if (!finalText) return;
 
+    setGenerationError('');
+    setLoadingLineIndex(0);
     setLoading(true);
 
     try {
@@ -262,39 +278,30 @@ const activeTheme = moodTheme[selectedMood];
         }),
       });
 
-      const data = await response.json();
-      const nextReceipt: ReceiptResponse = {
-        main: typeof data.main === 'string' ? data.main : 'printer said no. try again.',
-        best: typeof data.best === 'string' ? data.best : 'You do it.',
-        worst: typeof data.worst === 'string' ? data.worst : 'You stall again.',
-      };
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(getApiError(data) || 'The printer is temporarily unavailable.');
+      }
+      if (!isReceiptResponse(data)) {
+        throw new Error('The printer returned an unreadable receipt. Please try again.');
+      }
+
+      const nextReceipt = data;
 
       setReceipt(nextReceipt);
       setTicketNumber(nextTicketNumber());
       setIssuedAt(nextIssuedAt());
       setMemory(finalText);
-      setPrintedTask(finalText);
-      setPrintedContext(details);
       setPrintedMood(selectedMood);
-      setPrintedIntensity(intensity);
       await revealReceipt(nextReceipt);
-    } catch {
-      const fallback: ReceiptResponse = {
-        main: 'printer jammed. try again.',
-        best: 'You reset and finish it.',
-        worst: 'You stall and spiral.',
-      };
-      setReceipt(fallback);
-      setTicketNumber(nextTicketNumber());
-      setIssuedAt(nextIssuedAt());
-      setPrintedTask(finalText);
-      setPrintedContext(details);
-      setPrintedMood(selectedMood);
-      setPrintedIntensity(intensity);
-      await revealReceipt(fallback);
+    } catch (error) {
+      setGenerationError(
+        error instanceof Error ? error.message : 'The printer jammed. Please try again.'
+      );
+    } finally {
+      setLoadingLineIndex(0);
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   async function saveReceipt() {
@@ -449,6 +456,7 @@ const activeTheme = moodTheme[selectedMood];
                         value={followUpAnswer}
                         onChange={(event) => setFollowUpAnswer(event.target.value)}
                         placeholder={activeJobPrompt.placeholder}
+                        maxLength={120}
                         className="prompt-input detail-input"
                       />
                     </label>
@@ -485,6 +493,7 @@ const activeTheme = moodTheme[selectedMood];
                             value={text}
                             onChange={(event) => setText(event.target.value)}
                             placeholder={activeMood.taskLabel}
+                            maxLength={300}
                             className="prompt-input"
                           />
                         </label>
@@ -504,6 +513,12 @@ const activeTheme = moodTheme[selectedMood];
                             Surprise
                           </button>
                         </div>
+
+                        {generationError ? (
+                          <p className="generation-error" role="alert">
+                            {generationError}
+                          </p>
+                        ) : null}
 
                         <div className="suggestion-row">
                           {loading ? (

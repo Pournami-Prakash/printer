@@ -15,7 +15,7 @@ export function initAnalytics() {
 }
 
 // ✅ typed properly
-export function track(event: string, props: Record<string, any> = {}) {
+export function track(event: string, props: Record<string, unknown> = {}) {
   if (typeof window === 'undefined') return;
 
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;

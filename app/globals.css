@@ -607,6 +607,18 @@ button {
   animation: printer-blink 0.9s steps(2, end) infinite;
 }
 
+.generation-error {
+  margin: 0;
+  padding: 8px 10px;
+  border: 2px solid #8a3d3d;
+  border-radius: 8px;
+  background: #fff0ed;
+  color: #6d2525;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
 @keyframes printer-blink {
   0%, 100% {
     opacity: 1;

@@ -5,93 +5,148 @@ import { generateReply } from "@/lib/llm";
 import { INTENSITIES, MOODS } from "@/lib/types";
 import type { Intensity, Mood } from "@/lib/types";
 
-function isMood(v: string): v is Mood {
-  return (MOODS as readonly string[]).includes(v);
+const MAX_BODY_LENGTH = 4_000;
+const MAX_TEXT_LENGTH = 300;
+const MAX_DETAILS_LENGTH = 120;
+const MAX_MEMORY_LENGTH = 100;
+const MAX_PREVIOUS_MAIN_LENGTH = 160;
+
+type JsonObject = Record<string, unknown>;
+
+function isMood(value: unknown): value is Mood {
+  return typeof value === "string" && (MOODS as readonly string[]).includes(value);
 }
 
-function isIntensity(v: string): v is Intensity {
-  return (INTENSITIES as readonly string[]).includes(v);
+function isIntensity(value: unknown): value is Intensity {
+  return typeof value === "string" && (INTENSITIES as readonly string[]).includes(value);
+}
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function errorResponse(error: string, status: number, headers?: HeadersInit) {
+  return NextResponse.json({ error }, { status, headers });
+}
+
+function readString(
+  body: JsonObject,
+  key: string,
+  maxLength: number,
+  required = false
+): { value: string } | { error: string } {
+  const raw = body[key];
+
+  if (raw === undefined || raw === null) {
+    return required ? { error: `${key} is required.` } : { value: "" };
+  }
+
+  if (typeof raw !== "string") {
+    return { error: `${key} must be text.` };
+  }
+
+  const value = raw.trim();
+  if (required && !value) return { error: `${key} is required.` };
+  if (raw.length > maxLength) return { error: `${key} is too long.` };
+
+  return { value };
+}
+
+async function readRequestBody(req: NextRequest): Promise<JsonObject | NextResponse> {
+  const contentLength = Number(req.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_LENGTH) {
+    return errorResponse("request is too large.", 413);
+  }
+
+  const rawBody = await req.text();
+  if (rawBody.length > MAX_BODY_LENGTH) {
+    return errorResponse("request is too large.", 413);
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(rawBody);
+    return isJsonObject(parsed)
+      ? parsed
+      : errorResponse("request body must be an object.", 400);
+  } catch {
+    return errorResponse("request body must be valid JSON.", 400);
+  }
+}
+
+function getClientIdentifier(req: NextRequest) {
+  const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0].trim();
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  return (forwarded || realIp || "local").slice(0, 64);
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
+    const rateLimit = await allowRequest(getClientIdentifier(req));
 
-    if (!allowRequest(ip)) {
-      return NextResponse.json(
-        { error: "Too many requests. Try again in a minute." },
-        { status: 429 }
-      );
+    if (rateLimit.status === "unconfigured" || rateLimit.status === "unavailable") {
+      return errorResponse("The printer is temporarily unavailable.", 503);
     }
 
-    const { text, details, memory, mood, intensity, previousMain, _hp } = await req.json();
-
-    // Honeypot — bots fill hidden fields, humans don't
-    if (_hp) {
-      return NextResponse.json({ error: "nope." }, { status: 400 });
+    if (rateLimit.status === "limited") {
+      const retryAfter = Math.max(1, Math.ceil((rateLimit.reset - Date.now()) / 1_000));
+      return errorResponse("Too many receipts. Try again in a minute.", 429, {
+        "Retry-After": String(retryAfter),
+        "X-RateLimit-Limit": String(rateLimit.limit),
+        "X-RateLimit-Remaining": String(rateLimit.remaining),
+        "X-RateLimit-Reset": String(rateLimit.reset),
+      });
     }
 
-    if (!text || typeof text !== "string" || text.trim().length === 0) {
-      return NextResponse.json(
-        { error: "type something real." },
-        { status: 400 }
-      );
+    const body = await readRequestBody(req);
+    if (body instanceof NextResponse) return body;
+
+    // Honeypot — bots fill hidden fields, humans don't.
+    if (body._hp) return errorResponse("request rejected.", 400);
+
+    const text = readString(body, "text", MAX_TEXT_LENGTH, true);
+    const details = readString(body, "details", MAX_DETAILS_LENGTH);
+    const memory = readString(body, "memory", MAX_MEMORY_LENGTH);
+    const previousMain = readString(body, "previousMain", MAX_PREVIOUS_MAIN_LENGTH);
+
+    if ("error" in text) return errorResponse(text.error, 400);
+    if ("error" in details) return errorResponse(details.error, 400);
+    if ("error" in memory) return errorResponse(memory.error, 400);
+    if ("error" in previousMain) return errorResponse(previousMain.error, 400);
+
+    if (!/\p{L}/u.test(text.value)) {
+      return errorResponse("type something with words.", 400);
     }
 
-    // Reject inputs that are too long or contain no letters
-    if (text.length > 300) {
-      return NextResponse.json(
-        { error: "keep it shorter." },
-        { status: 400 }
-      );
-    }
-
-    if (!/[a-zA-Z]/.test(text)) {
-      return NextResponse.json(
-        { error: "type something real." },
-        { status: 400 }
-      );
-    }
-
-    const safeMood: Mood = isMood(mood) ? mood : "guilt";
-    const safeIntensity: Intensity = isIntensity(intensity) ? intensity : "brutal";
-
-    const finalDetails = typeof details === "string" ? details : "";
-    const finalPreviousMain = typeof previousMain === "string" ? previousMain : "";
+    if (!isMood(body.mood)) return errorResponse("choose a valid goblin.", 400);
+    if (!isIntensity(body.intensity)) return errorResponse("choose a valid intensity.", 400);
 
     const prompt = buildPrompt(
-      text,
-      safeMood,
-      safeIntensity,
-      memory,
-      finalDetails,
-      finalPreviousMain
+      text.value,
+      body.mood,
+      body.intensity,
+      memory.value,
+      details.value,
+      previousMain.value
     );
 
-    const result = await getBestReceiptReply(prompt, finalPreviousMain);
+    const result = await getBestReceiptReply(prompt, previousMain.value);
+    if (!result) return errorResponse("The printer jammed. Please try again.", 502);
 
-    return NextResponse.json(
-      result ?? {
-        main: "printer jammed. try again.",
-        best: "You do it.",
-        worst: "You stall again.",
-      }
-    );
-
-  } catch {
-    return NextResponse.json(
-      {
-        main: "printer jammed. try again.",
-        best: "You do it.",
-        worst: "You stall again.",
+    return NextResponse.json(result, {
+      headers: {
+        "X-RateLimit-Limit": String(rateLimit.limit),
+        "X-RateLimit-Remaining": String(rateLimit.remaining),
+        "X-RateLimit-Reset": String(rateLimit.reset),
       },
-      { status: 500 }
-    );
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.name : "UnknownError";
+    console.error(`[generate] request failed: ${reason}`);
+    return errorResponse("The printer jammed. Please try again.", 500);
   }
 }
 
-// Normalise leet-speak and spacing before checking
+// Normalise leet-speak and spacing before checking.
 function normaliseForSafety(text: string) {
   return text
     .toLowerCase()
@@ -138,7 +193,8 @@ async function getBestReceiptReply(prompt: string, previousMain: string) {
 
       return result;
     } catch (error) {
-      console.error(`[generate] ${provider} failed`, error);
+      const reason = error instanceof Error ? error.message : "unknown error";
+      console.error(`[generate] ${provider} failed: ${reason}`);
     }
   }
 
@@ -154,7 +210,7 @@ function isTooSimilarToPrevious(main: string, previousMain: string) {
 
   const currentWords = Array.from(new Set(current.split(" ").filter(Boolean)));
   const previousWords = new Set(previous.split(" ").filter(Boolean));
-  const overlap = currentWords.filter((w) => previousWords.has(w)).length;
+  const overlap = currentWords.filter((word) => previousWords.has(word)).length;
   return overlap / Math.max(1, currentWords.length) >= 0.72;
 }
 

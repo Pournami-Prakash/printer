@@ -2,6 +2,7 @@ const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const LLM7_URL = "https://api.llm7.io/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 const LLM7_MODEL = "gpt-4o-mini";
+const PROVIDER_TIMEOUT_MS = 15_000;
 
 export type ModelProvider = "groq" | "llm7";
 
@@ -37,6 +38,7 @@ async function requestProvider(provider: ModelProvider, prompt: string): Promise
   const res = await fetch(endpoint, {
     method: "POST",
     headers,
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     body: JSON.stringify({
       model: provider === "groq" ? GROQ_MODEL : LLM7_MODEL,
       temperature: 0.72,
@@ -45,8 +47,7 @@ async function requestProvider(provider: ModelProvider, prompt: string): Promise
   });
 
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`LLM request failed: ${res.status} ${body}`);
+    throw new Error(`${provider} returned HTTP ${res.status}`);
   }
 
   const json = await res.json();
