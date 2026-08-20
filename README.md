@@ -2,6 +2,8 @@
 
 > A tiny printer that keeps receipts for your excuses.
 
+**[Confess something to the goblin →](https://guilttrip.pournamiprakash.dev/)**
+
 Confess the thing you have been avoiding. Somewhere inside the machine, a goblin reviews the evidence.
 
 Out slides one painfully specific verdict, two possible futures, and the uncomfortable feeling that a piece of thermal paper understands you.
